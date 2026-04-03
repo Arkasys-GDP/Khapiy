@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model categories {
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(255)
+  is_active Boolean?   @default(true)
+  products  products[]
+}
+
+model ingredients {
+  id                  Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(255)
+  is_allergen         Boolean?              @default(false)
+  product_ingredients product_ingredients[]
+}
+
+model n8n_chat_histories {
+  id         Int    @id @default(autoincrement())
+  session_id String @db.VarChar(255)
+  message    Json
+}
+
+model order_items {
+  id         Int       @id @default(autoincrement())
+  order_id   Int?
+  product_id Int?
+  quantity   Int       @default(1)
+  unit_price Decimal   @db.Decimal(10, 2)
+  ai_notes   String?
+  orders     orders?   @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products   products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model orders {
+  id              Int           @id @default(autoincrement())
+  table_id        Int?
+  chat_session_id String?       @db.Uuid
+  payment_code    String?       @db.VarChar(6)
+  total           Decimal?      @db.Decimal(10, 2)
+  payment_status  String?       @default("PENDING") @db.VarChar(50)
+  kitchen_status  String?       @default("WAITING") @db.VarChar(50)
+  created_at      DateTime?     @default(now()) @db.Timestamp(6)
+  order_items     order_items[]
+  tables          tables?       @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model product_ingredients {
+  product_id    Int
+  ingredient_id Int
+  is_optional   Boolean?    @default(false)
+  ingredients   ingredients @relation(fields: [ingredient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products      products    @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([product_id, ingredient_id])
+}
+
+model products {
+  id                  Int                   @id @default(autoincrement())
+  legacy_id           Int?
+  category_id         Int?
+  name                String                @db.VarChar(255)
+  ai_description      String?
+  price               Decimal               @db.Decimal(10, 2)
+  is_available        Boolean?              @default(true)
+  order_items         order_items[]
+  product_ingredients product_ingredients[]
+  categories          categories?           @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tables {
+  id         Int      @id @default(autoincrement())
+  table_name String   @db.VarChar(255)
+  status     String?  @default("Available") @db.VarChar(50)
+  orders     orders[]
+}
