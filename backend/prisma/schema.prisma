@@ -1,82 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-model categories {
-  id        Int        @id @default(autoincrement())
-  name      String     @db.VarChar(255)
-  is_active Boolean?   @default(true)
-  products  products[]
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  isActive  Boolean   @default(true)
+  products  Product[]
 }
 
-model ingredients {
-  id                  Int                   @id @default(autoincrement())
-  name                String                @db.VarChar(255)
-  is_allergen         Boolean?              @default(false)
-  product_ingredients product_ingredients[]
+model Table {
+  id        Int      @id @default(autoincrement())
+  tableName String
+  status    TableStatus @default(Available)
+  orders    Order[]
 }
 
-model n8n_chat_histories {
-  id         Int    @id @default(autoincrement())
-  session_id String @db.VarChar(255)
-  message    Json
+model Ingredient {
+  id              Int                 @id @default(autoincrement())
+  name            String
+  isAllergen      Boolean             @default(false)
+  productIngredients ProductIngredient[]
 }
 
-model order_items {
-  id         Int       @id @default(autoincrement())
-  order_id   Int?
-  product_id Int?
-  quantity   Int       @default(1)
-  unit_price Decimal   @db.Decimal(10, 2)
-  ai_notes   String?
-  orders     orders?   @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  products   products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Product {
+  id              Int                 @id @default(autoincrement())
+  legacyId        Int?
+  categoryId      Int
+  name            String
+  aiDescription   String?
+  price           Decimal
+  isAvailable     Boolean             @default(true)
+  category        Category            @relation(fields: [categoryId], references: [id])
+  productIngredients ProductIngredient[]
+  orderItems      OrderItem[]
 }
 
-model orders {
-  id              Int           @id @default(autoincrement())
-  table_id        Int?
-  chat_session_id String?       @db.Uuid
-  payment_code    String?       @db.VarChar(6)
-  total           Decimal?      @db.Decimal(10, 2)
-  payment_status  String?       @default("PENDING") @db.VarChar(50)
-  kitchen_status  String?       @default("WAITING") @db.VarChar(50)
-  created_at      DateTime?     @default(now()) @db.Timestamp(6)
-  order_items     order_items[]
-  tables          tables?       @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Order {
+  id            Int      @id @default(autoincrement())
+  tableId       Int
+  chatSessionId String?  @db.Uuid
+  paymentCode   String?  @db.VarChar(6)
+  total         Decimal?
+  paymentStatus PaymentStatus @default(PENDING)
+  kitchenStatus KitchenStatus @default(WAITING)
+  createdAt     DateTime @default(now())
+  deletedAt     DateTime?
+  table         Table    @relation(fields: [tableId], references: [id])
+  orderItems    OrderItem[]
 }
 
-model product_ingredients {
-  product_id    Int
-  ingredient_id Int
-  is_optional   Boolean?    @default(false)
-  ingredients   ingredients @relation(fields: [ingredient_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  products      products    @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model ProductIngredient {
+  productId    Int
+  ingredientId Int
+  isOptional   Boolean   @default(false)
+  product      Product     @relation(fields: [productId], references: [id])
+  ingredient   Ingredient  @relation(fields: [ingredientId], references: [id])
 
-  @@id([product_id, ingredient_id])
+  @@id([productId, ingredientId])
 }
 
-model products {
-  id                  Int                   @id @default(autoincrement())
-  legacy_id           Int?
-  category_id         Int?
-  name                String                @db.VarChar(255)
-  ai_description      String?
-  price               Decimal               @db.Decimal(10, 2)
-  is_available        Boolean?              @default(true)
-  order_items         order_items[]
-  product_ingredients product_ingredients[]
-  categories          categories?           @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int      @default(1)
+  unitPrice Decimal
+  aiNotes   String?
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
 }
 
-model tables {
-  id         Int      @id @default(autoincrement())
-  table_name String   @db.VarChar(255)
-  status     String?  @default("Available") @db.VarChar(50)
-  orders     orders[]
+enum TableStatus {
+  Available
+  Occupied
+  Reserved
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum KitchenStatus {
+  WAITING
+  PREPARING
+  READY
+  DELIVERED
+}
+
+model N8nChatHistory {
+  id        Int    @id @default(autoincrement())
+  sessionId String @map("session_id") @db.VarChar(255)
+  message   Json
+
+  @@map("n8n_chat_histories")
 }
