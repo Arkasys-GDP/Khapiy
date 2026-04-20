@@ -33,12 +33,11 @@ GRANT SELECT, INSERT, UPDATE ON orders, order_items TO agente_kaphiy;
 -- Se otorga permiso sobre todas las secuencias del esquema publico para prevenir errores de inserción
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO agente_kaphiy;
 
--- ====== PERMISOS PARA EL SISTEMA N8N ====== --
+-- ====== PERMISOS PARA LA MEMORIA N8N (TABLAS ESPECÍFICAS) ====== --
 
--- 1. Permisos para la tabla de chat_histories
+-- 1. Permisos COMPLETOS solo para la tabla de historial de chat
 GRANT ALL PRIVILEGES ON TABLE n8n_chat_histories TO agente_kaphiy;
 
--- 2. Permisos sobre el esquema público y todo el contenido
-GRANT USAGE ON SCHEMA public TO agente_kaphiy;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO agente_kaphiy;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO agente_kaphiy;
+-- 2. Permisos COMPLETOS solo para la tabla de vectores (que creará n8n pronto)
+-- Nota: Activa esta línea *DESPUÉS* de ejecutar el In-Memory Vector en n8n
+-- GRANT ALL PRIVILEGES ON TABLE n8n_vectors TO agente_kaphiy;
