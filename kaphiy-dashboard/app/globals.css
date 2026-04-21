@@ -272,6 +272,21 @@
     .semaphore-alert { background: color-mix(in oklch, var(--sem-alert) 18%, transparent); color: var(--sem-alert); }
 }
 
+/* Keyframes */
+@keyframes order-item-flash {
+    0%, 100% { background: transparent; }
+    50% { background: color-mix(in oklch, var(--praline) 10%, transparent); }
+}
+
+@keyframes card-entrance {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ticket-card {
+    animation: card-entrance var(--dur-snap) var(--ease-snap) both;
+}
+
 /* Reduced motion — accessibility */
 @media (prefers-reduced-motion: reduce) {
     *,

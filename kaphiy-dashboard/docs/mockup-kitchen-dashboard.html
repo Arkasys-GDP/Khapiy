@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Praliné — Dashboard de Cocina</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="tokens.css" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: #1e1c18;
+            color: var(--color-text);
+        }
+
+        /* ── LAYOUT ─────────────────────────────────────────── */
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--color-bg);
+        }
+
+        /* ── TOP BAR ────────────────────────────────────────── */
+        .topbar {
+            background: var(--color-primary);
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            height: 68px;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .topbar-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            color: #FDFAF7;
+        }
+
+        .topbar-brand em {
+            font-style: italic;
+            color: var(--color-accent-green);
+        }
+
+        .topbar-sep {
+            width: 1px;
+            height: 32px;
+            background: rgba(255, 249, 244, .2);
+        }
+
+        .topbar-section {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: rgba(255, 249, 244, .6);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-time {
+            font-size: 26px;
+            font-weight: 700;
+            color: #FDFAF7;
+            letter-spacing: .06em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .status-pills {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .04em;
+        }
+
+        .pill-green {
+            background: rgba(169, 181, 162, .25);
+            color: #6a8f62;
+        }
+
+        .pill-rose {
+            background: rgba(162, 117, 114, .25);
+            color: #9a4e4b;
+        }
+
+        .pill-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .pill-green .pill-dot {
+            background: #6a8f62;
+            animation: blink 1.5s infinite;
+        }
+
+        .pill-rose .pill-dot {
+            background: #9a4e4b;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .3;
+            }
+        }
+
+        /* ── STATS BAR ──────────────────────────────────────── */
+        .stats-bar {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 12px 28px;
+            display: flex;
+            gap: 32px;
+            flex-shrink: 0;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-n {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .stat-l {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+        }
+
+        .stat-sep {
+            width: 1px;
+            background: var(--color-divider);
+            align-self: stretch;
+        }
+
+        /* ── GRID AREA ──────────────────────────────────────── */
+        .grid-header {
+            padding: 16px 28px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .grid-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .grid-subtitle {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        .legend-box {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            border: 2.5px solid;
+        }
+
+        .legend-box.alert {
+            border-color: var(--color-accent-rose);
+            background: rgba(162, 117, 114, .12);
+        }
+
+        .legend-box.normal {
+            border-color: var(--color-border);
+            background: transparent;
+        }
+
+        .orders-grid {
+            column-width: 330px;
+            column-gap: 24px;
+            padding: 0 28px 40px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+        }
+
+        @media (max-width: 1100px) {
+            .orders-grid {
+                column-width: 290px;
+                column-gap: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 0 16px;
+                flex-wrap: wrap;
+                height: auto;
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+
+            .topbar-time {
+                font-size: 20px;
+            }
+
+            .stats-bar {
+                padding: 12px 16px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                gap: 20px;
+            }
+
+            .stat-sep {
+                display: none;
+            }
+
+            .grid-header {
+                padding: 16px 16px 10px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .orders-grid {
+                padding: 0 16px 30px;
+                column-width: 100%;
+            }
+        }
+
+        /* ── ORDER CARD (REDESIGNED) ────────────────────────── */
+        .order-card {
+            background: #ffffff;
+            border: none;
+            border-radius: 24px;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(90, 58, 46, .06);
+            transition: box-shadow .3s ease, transform .3s ease;
+            position: relative;
+
+            /* Masonry Grid Rules */
+            break-inside: avoid;
+            page-break-inside: avoid;
+            -webkit-column-break-inside: avoid;
+            margin-bottom: 24px;
+            display: inline-flex;
+            width: 100%;
+        }
+
+        .order-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--color-primary);
+            opacity: 0.8;
+            z-index: 2;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 12px 40px rgba(90, 58, 46, .12);
+            transform: translateY(-4px);
+        }
+
+        .order-card.alert::before {
+            background: #A27572;
+            opacity: 1;
+        }
+
+        .order-card.alert {
+            background: #fffcf9;
+            box-shadow: 0 8px 32px rgba(162, 117, 114, .15);
+        }
+
+        .order-card.done::before {
+            background: var(--color-accent-green);
+        }
+
+        .order-card.done {
+            opacity: .6;
+            filter: grayscale(0.4);
+        }
+
+        /* Card header */
+        .card-head {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--color-divider);
+            position: relative;
+            z-index: 1;
+        }
+
+        .mesa-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mesa-num {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .mesa-num span {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-left: 8px;
+            text-transform: none;
+            letter-spacing: normal;
+            line-height: 0.8;
+        }
+
+        .mesa-id {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+        }
+
+        .timer-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .timer {
+            font-size: 24px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: .02em;
+            line-height: 1;
+        }
+
+        .order-card.alert .timer {
+            color: #A27572;
+        }
+
+        .order-card:not(.alert) .timer {
+            color: var(--color-primary);
+        }
+
+        .timer-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+        }
+
+        .alert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(162, 117, 114, .15);
+            color: #A27572;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: .04em;
+        }
+
+        /* Product list */
+        .card-products {
+            padding: 20px 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed var(--color-divider);
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .p-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .p-left>div {
+            min-width: 0;
+        }
+
+        .p-qty {
+            width: 28px;
+            height: 28px;
+            background: rgba(86, 82, 67, .08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-primary);
+            flex-shrink: 0;
+        }
+
+        .order-card.alert .p-qty {
+            background: rgba(162, 117, 114, .1);
+            color: #A27572;
+        }
+
+        .p-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 4px;
+            word-wrap: break-word;
+        }
+
+        .p-mod {
+            font-size: 11.5px;
+            color: var(--color-text-muted);
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .p-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 6px;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.7);
+        }
+
+        .p-pending {
+            background: #d4b896;
+        }
+
+        .p-ready {
+            background: var(--color-accent-green);
+        }
+
+        /* Complete button */
+        .card-footer {
+            padding: 12px 24px 24px;
+        }
+
+        .btn-complete {
+            width: 100%;
+            background: var(--color-surface);
+            color: var(--color-text);
+            border: 1.5px solid var(--color-border);
+            border-radius: 18px;
+            padding: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all .2s;
+        }
+
+        .btn-complete:hover {
+            background: var(--color-primary);
+            color: #fff;
+            border-color: var(--color-primary);
+            box-shadow: 0 6px 16px rgba(86, 82, 67, .25);
+        }
+
+        .btn-complete:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(86, 82, 67, .15);
+        }
+
+        .btn-complete svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .btn-done {
+            background: var(--color-accent-green) !important;
+            color: #fff !important;
+            border-color: var(--color-accent-green) !important;
+            box-shadow: none !important;
+        }
+
+        .btn-done:hover {
+            filter: brightness(.92);
+        }
+
+        /* ── EMPTY SLOT ─────────────────────────────────────── */
+        .slot-empty {
+            background: rgba(0, 0, 0, .02);
+            border: 2px dashed var(--color-border);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 260px;
+            color: var(--color-text-muted);
+        }
+
+        .slot-empty svg {
+            width: 36px;
+            height: 36px;
+            stroke: var(--color-border);
+            fill: none;
+            stroke-width: 1.4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .slot-empty p {
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <div class="topbar-brand">PRALIN<em>É</em></div>
+            <div class="topbar-sep"></div>
+            <div class="topbar-section">Dashboard de Cocina</div>
+            <div class="topbar-right">
+                <div class="status-pills">
+                    <div class="pill pill-green">
+                        <div class="pill-dot"></div>Cocina Activa
+                    </div>
+                    <div class="pill pill-rose">
+                        <div class="pill-dot"></div>3 Alertas
+                    </div>
+                </div>
+                <div class="topbar-time" id="clock">--:--</div>
+            </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-n">7</div>
+                <div class="stat-l">En preparación</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+                <div class="stat-n" style="color:var(--color-accent-rose);">3</div>
+                <div class="stat-l">Con Alerta (+10 min)</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+                <div class="stat-n" style="color:var(--color-accent-green);">14</div>
+                <div class="stat-l">Completados hoy</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+                <div class="stat-n">8.2 min</div>
+                <div class="stat-l">Tiempo promedio</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+                <div class="stat-n">$248</div>
+                <div class="stat-l">Ventas turno</div>
+            </div>
+        </div>
+
+        <!-- GRID HEADER -->
+        <div class="grid-header">
+            <div>
+                <div class="grid-title">Pedidos Activos</div>
+                <div class="grid-subtitle">Actualizado en tiempo real · Toca "Completar" cuando el pedido esté listo
+                </div>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box alert"></div>+10 min — Requiere atención
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box normal"></div>En tiempo
+                </div>
+            </div>
+        </div>
+
+        <!-- ORDERS GRID -->
+        <div class="orders-grid">
+
+            <!-- ── PEDIDO 1 · Mesa 3 · 13 min ALERTA ── -->
+            <div class="order-card alert">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>3</span></div>
+                        <div class="mesa-id">#PED-0041 · 2 personas</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer">13:24</div>
+                        <div class="timer-label">tiempo espera</div>
+                        <div class="alert-badge">⚠ Demorado</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">2</div>
+                            <div>
+                                <div class="p-name">Latte de Avellana</div>
+                                <div class="p-mod">Oat milk · sin azúcar</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Croissant Praliné</div>
+                                <div class="p-mod">Tibio · sin modificaciones</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Jugo de Naranja</div>
+                                <div class="p-mod">Natural · sin hielo</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completar Pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── PEDIDO 2 · Mesa 7 · 6 min NORMAL ── -->
+            <div class="order-card">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>7</span></div>
+                        <div class="mesa-id">#PED-0042 · 4 personas</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer">06:15</div>
+                        <div class="timer-label">tiempo espera</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">2</div>
+                            <div>
+                                <div class="p-name">Espresso Doble</div>
+                                <div class="p-mod">Extra caliente</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Matcha Latte</div>
+                                <div class="p-mod">Temperatura normal</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">2</div>
+                            <div>
+                                <div class="p-name">Cupcake Praliné</div>
+                                <div class="p-mod">Sin modificaciones</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Desayuno Continental</div>
+                                <div class="p-mod">Pan integral</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completar Pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── PEDIDO 3 · Mesa 1 · 11 min ALERTA ── -->
+            <div class="order-card alert">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>1</span></div>
+                        <div class="mesa-id">#PED-0043 · 1 persona</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer">11:07</div>
+                        <div class="timer-label">tiempo espera</div>
+                        <div class="alert-badge">⚠ Demorado</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Cold Brew Caramel</div>
+                                <div class="p-mod">Extra hielo · leche oat</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Galleta Chocolate</div>
+                                <div class="p-mod">Sin gluten</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completar Pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── PEDIDO 4 · Mesa 5 · 4 min NORMAL ── -->
+            <div class="order-card">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>5</span></div>
+                        <div class="mesa-id">#PED-0044 · 3 personas</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer">04:42</div>
+                        <div class="timer-label">tiempo espera</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">3</div>
+                            <div>
+                                <div class="p-name">Cappuccino</div>
+                                <div class="p-mod">Leche entera</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">2</div>
+                            <div>
+                                <div class="p-name">Tarta Rosa</div>
+                                <div class="p-mod">Temperatura ambiente</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Agua Mineral</div>
+                                <div class="p-mod">Sin gas</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completar Pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── PEDIDO 5 · Mesa 9 · 8 min NORMAL ── -->
+            <div class="order-card">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>9</span></div>
+                        <div class="mesa-id">#PED-0045 · 2 personas</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer">08:30</div>
+                        <div class="timer-label">tiempo espera</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Flat White</div>
+                                <div class="p-mod">Extra shot</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Avocado Toast Brunch</div>
+                                <div class="p-mod">Huevo pochado encima</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completar Pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── PEDIDO 6 · Mesa 12 · 14 min ALERTA ── -->
+            <div class="order-card alert">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>12</span></div>
+                        <div class="mesa-id">#PED-0046 · 5 personas</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer">14:51</div>
+                        <div class="timer-label">tiempo espera</div>
+                        <div class="alert-badge">⚠ Urgente</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">4</div>
+                            <div>
+                                <div class="p-name">Latte Vainilla</div>
+                                <div class="p-mod">Leche de almendra</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">1</div>
+                            <div>
+                                <div class="p-name">Té chai caliente</div>
+                                <div class="p-mod">Leche entera · extra canela</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">5</div>
+                            <div>
+                                <div class="p-name">Cupcake surtido</div>
+                                <div class="p-mod">Mix: choco, vainilla, rosa</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completar Pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── PEDIDO 7 · Mesa 2 · 3 min NORMAL ── -->
+            <div class="order-card">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>2</span></div>
+                        <div class="mesa-id">#PED-0047 · 2 personas</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer">03:10</div>
+                        <div class="timer-label">tiempo espera</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">2</div>
+                            <div>
+                                <div class="p-name">Americano</div>
+                                <div class="p-mod">Con leche al lado</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-pending"></div>
+                    </div>
+                    <div class="product-item">
+                        <div class="p-left">
+                            <div class="p-qty">2</div>
+                            <div>
+                                <div class="p-name">Galletas Shortbread</div>
+                                <div class="p-mod">Sin modificaciones</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completar Pedido
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── PEDIDO 8 · Completado ── -->
+            <div class="order-card done">
+                <div class="card-head">
+                    <div class="mesa-info">
+                        <div class="mesa-num">Mesa <span>6</span></div>
+                        <div class="mesa-id">#PED-0040 · Completado</div>
+                    </div>
+                    <div class="timer-wrap">
+                        <div class="timer" style="color:var(--color-accent-green);">✓ Listo</div>
+                    </div>
+                </div>
+                <div class="card-products">
+                    <div class="product-item" style="opacity:.6;">
+                        <div class="p-left">
+                            <div class="p-qty" style="background:var(--color-accent-green);">1</div>
+                            <div>
+                                <div class="p-name">Espresso</div>
+                                <div class="p-mod">Entregado</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                    <div class="product-item" style="opacity:.6;">
+                        <div class="p-left">
+                            <div class="p-qty" style="background:var(--color-accent-green);">1</div>
+                            <div>
+                                <div class="p-name">Tarta de Praliné</div>
+                                <div class="p-mod">Entregado</div>
+                            </div>
+                        </div>
+                        <div class="p-status p-ready"></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-complete btn-done">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Pedido Entregado
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── SLOT VACÍO ── -->
+            <div class="slot-empty">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="4" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                <p>Slot disponible</p>
+            </div>
+
+        </div><!-- /orders-grid -->
+    </div><!-- /dashboard -->
+
+    <script>
+        // Reloj en tiempo real
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = h + ':' + m;
+        }
+        updateClock();
+        setInterval(updateClock, 10000);
+
+        // Botones Completar
+        document.querySelectorAll('.btn-complete:not(.btn-done)').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const card = this.closest('.order-card');
+                card.classList.remove('alert');
+                card.classList.add('done');
+                card.style.transform = 'scale(.98)';
+                card.style.opacity = '.55';
+                this.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg> Pedido Entregado';
+                this.classList.add('btn-done');
+                this.style.background = 'var(--color-accent-green)';
+                this.style.color = 'var(--color-text)';
+            });
+        });
+    </script>
+</body>
+
+</html>
