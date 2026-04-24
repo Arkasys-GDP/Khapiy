@@ -1,8 +1,13 @@
 import 'dotenv/config';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../src/generated/prisma';
 
 async function main() {
-  const prisma = new PrismaService();
+  const connectionString = `${process.env.DATABASE_URL}`;
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+  const prisma = new PrismaClient({ adapter } as any);
   await prisma.$connect();
   try {
     await prisma.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS vector;`);

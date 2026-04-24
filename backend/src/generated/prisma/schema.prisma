@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../src/generated/prisma"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @db.VarChar(255)
+  isActive Boolean   @default(true) @map("is_active")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Table {
+  id        Int         @id @default(autoincrement())
+  tableName String      @map("table_name") @db.VarChar(255)
+  status    TableStatus @default(Available)
+  orders    Order[]
+
+  @@map("tables")
+}
+
+model Ingredient {
+  id                 Int                 @id @default(autoincrement())
+  name               String              @db.VarChar(255)
+  isAllergen         Boolean             @default(false) @map("is_allergen")
+  productIngredients ProductIngredient[]
+
+  @@map("ingredients")
+}
+
+model Product {
+  id                 Int                 @id @default(autoincrement())
+  legacyId           Int?                @map("legacy_id")
+  categoryId         Int                 @map("category_id")
+  name               String              @db.VarChar(255)
+  aiDescription      String?             @map("ai_description") @db.Text
+  price              Decimal             @db.Decimal(10, 2)
+  isAvailable        Boolean             @default(true) @map("is_available")
+  category           Category            @relation(fields: [categoryId], references: [id])
+  productIngredients ProductIngredient[]
+  orderItems         OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  tableId       Int           @map("table_id")
+  chatSessionId String?       @map("chat_session_id") @db.Uuid
+  paymentCode   String?       @map("payment_code") @db.VarChar(6)
+  total         Decimal?      @db.Decimal(10, 2)
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  kitchenStatus KitchenStatus @default(WAITING) @map("kitchen_status")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  deletedAt     DateTime?     @map("deleted_at") @db.Timestamp(6)
+  table         Table         @relation(fields: [tableId], references: [id])
+  orderItems    OrderItem[]
+
+  @@map("orders")
+}
+
+model ProductIngredient {
+  productId    Int        @map("product_id")
+  ingredientId Int        @map("ingredient_id")
+  isOptional   Boolean    @default(false) @map("is_optional")
+  product      Product    @relation(fields: [productId], references: [id])
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@id([productId, ingredientId])
+  @@map("product_ingredients")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int     @map("product_id")
+  quantity  Int     @default(1)
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  aiNotes   String? @map("ai_notes") @db.Text
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+enum TableStatus {
+  Available
+  Occupied
+  Reserved
+}
+
+enum PaymentStatus {
+  PENDING   @map("UNPAID")
+  PAID
+  CANCELLED
+}
+
+enum KitchenStatus {
+  WAITING   @map("QUEUE")
+  PREPARING
+  READY
+  DELIVERED
+}
+
+model N8nChatHistory {
+  id        Int    @id @default(autoincrement())
+  sessionId String @map("session_id") @db.VarChar(255)
+  message   Json
+
+  @@map("n8n_chat_histories")
+}

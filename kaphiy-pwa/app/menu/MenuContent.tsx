@@ -1,0 +1,164 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { MapPin, Menu, Search } from "lucide-react";
+import { BottomNav } from "@/components/pwa/BottomNav";
+import { ProductListItem } from "@/components/pwa/ProductListItem";
+import { getProducts, getCategories, adaptProduct, ApiCategory } from "@/lib/api";
+
+type AdaptedProduct = ReturnType<typeof adaptProduct>;
+
+export function MenuContent() {
+  const [search, setSearch] = useState("");
+  const [products, setProducts] = useState<AdaptedProduct[]>([]);
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    Promise.all([getProducts(), getCategories()])
+      .then(([prods, cats]) => {
+        setProducts(prods.map(adaptProduct));
+        setCategories(cats);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
+  }, []);
+
+  const filtered = search.trim()
+    ? products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(search.toLowerCase()) ||
+          p.description.toLowerCase().includes(search.toLowerCase())
+      )
+    : null;
+
+  const grouped = products.reduce<Record<string, AdaptedProduct[]>>((acc, p) => {
+    const key = p.categoryLabel;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(p);
+    return acc;
+  }, {});
+
+  return (
+    <div className="page-screen">
+      {/* ── Header (mismo diseño que inicio) ── */}
+      <div className="page-header page-header--compact">
+        <div className="page-header__top">
+          <div className="page-header__location">
+            <MapPin size={13} color="currentColor" />
+            Baños de Agua Santa, Ecuador
+          </div>
+          <button className="page-header__menu-btn" aria-label="Menú principal">
+            <Menu size={20} color="#fff9f4" />
+          </button>
+        </div>
+
+        <div className="page-header__brand">
+          <h1 className="page-header__brand-name">PRALINÉ</h1>
+          <p className="page-header__brand-sub">COFFEE HOUSE · SPECIALTY</p>
+        </div>
+
+        {/* Search activo con input */}
+        <div className="search-bar" style={{ background: "rgba(255,249,244,0.12)", borderColor: "rgba(255,249,244,0.2)" }}>
+          <Search size={14} color="rgba(255,249,244,0.6)" />
+          <input
+            type="text"
+            placeholder="Buscar en el menú..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "#fff9f4",
+              fontSize: "0.85rem",
+              width: "100%",
+              fontFamily: "var(--font-inter), 'Inter', sans-serif",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ── Error banner ── */}
+      {error && (
+        <div
+          style={{
+            background: "rgba(162,117,114,0.12)",
+            borderBottom: "1px solid rgba(162,117,114,0.2)",
+            padding: "0.5rem 1.25rem",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ fontSize: "0.7rem", color: "var(--color-praline-rose)" }}>
+            ⚠️ No se pudo conectar con el servidor · Por favor, intenta más tarde
+          </p>
+        </div>
+      )}
+
+      {/* ── Contenido ── */}
+      <div style={{ padding: "1.25rem" }}>
+        {loading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} style={{ height: 76, background: "#fff9f4", borderRadius: 20, opacity: 0.5 }} />
+            ))}
+          </div>
+        ) : filtered ? (
+          <div>
+            <p className="section-label">
+              {filtered.length} resultado{filtered.length !== 1 ? "s" : ""} para &ldquo;{search}&rdquo;
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {filtered.map((prod) => (
+                <ProductListItem
+                  key={prod.id}
+                  id={prod.id}
+                  emoji={prod.emoji}
+                  name={prod.name}
+                  description={prod.description}
+                  price={prod.price}
+                  badges={prod.badges}
+                  badgeTypes={prod.badgeTypes as any}
+                />
+              ))}
+              {filtered.length === 0 && (
+                <p style={{ textAlign: "center", color: "var(--color-praline-muted)", fontSize: "0.875rem", padding: "2rem" }}>
+                  No se encontraron productos ☕
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
+          Object.entries(grouped).map(([categoryLabel, items]) => (
+            <div key={categoryLabel} style={{ marginBottom: "1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                <span style={{ fontSize: "1.2rem" }}>{items[0]?.emoji ?? "☕"}</span>
+                <h2 className="section-title">{categoryLabel}</h2>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                {items.map((prod) => (
+                  <ProductListItem
+                    key={prod.id}
+                    id={prod.id}
+                    emoji={prod.emoji}
+                    name={prod.name}
+                    description={prod.description}
+                    price={prod.price}
+                    badges={prod.badges}
+                    badgeTypes={prod.badgeTypes as any}
+                  />
+                ))}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}
