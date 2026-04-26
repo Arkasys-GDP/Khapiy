@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Menu, Search } from "lucide-react";
+import { MapPin, Search, ChevronDown, ChevronRight } from "lucide-react";
 import { BottomNav } from "@/components/pwa/BottomNav";
 import { ProductListItem } from "@/components/pwa/ProductListItem";
 import { getProducts, getCategories, adaptProduct, ApiCategory } from "@/lib/api";
@@ -14,6 +14,11 @@ export function MenuContent() {
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+
+  const toggleCategory = (cat: string) => {
+    setCollapsedCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
 
   useEffect(() => {
     Promise.all([getProducts(), getCategories()])
@@ -52,9 +57,6 @@ export function MenuContent() {
             <MapPin size={13} color="currentColor" />
             Baños de Agua Santa, Ecuador
           </div>
-          <button className="page-header__menu-btn" aria-label="Menú principal">
-            <Menu size={20} color="#fff9f4" />
-          </button>
         </div>
 
         <div className="page-header__brand">
@@ -133,28 +135,44 @@ export function MenuContent() {
             </div>
           </div>
         ) : (
-          Object.entries(grouped).map(([categoryLabel, items]) => (
-            <div key={categoryLabel} style={{ marginBottom: "1.5rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                <span style={{ fontSize: "1.2rem" }}>{items[0]?.emoji ?? "☕"}</span>
-                <h2 className="section-title">{categoryLabel}</h2>
+          Object.entries(grouped).map(([categoryLabel, items]) => {
+            const isCollapsed = collapsedCategories[categoryLabel] || false;
+            return (
+              <div key={categoryLabel} style={{ marginBottom: "1.5rem" }}>
+                <div 
+                  onClick={() => toggleCategory(categoryLabel)}
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "0.5rem", 
+                    marginBottom: "0.75rem",
+                    cursor: "pointer",
+                    userSelect: "none"
+                  }}
+                >
+                  <span style={{ fontSize: "1.2rem" }}>{items[0]?.emoji ?? "☕"}</span>
+                  <h2 className="section-title" style={{ margin: 0, flex: 1 }}>{categoryLabel}</h2>
+                  {isCollapsed ? <ChevronRight size={20} color="#8a6555" /> : <ChevronDown size={20} color="#8a6555" />}
+                </div>
+                {!isCollapsed && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                    {items.map((prod) => (
+                      <ProductListItem
+                        key={prod.id}
+                        id={prod.id}
+                        emoji={prod.emoji}
+                        name={prod.name}
+                        description={prod.description}
+                        price={prod.price}
+                        badges={prod.badges}
+                        badgeTypes={prod.badgeTypes as any}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                {items.map((prod) => (
-                  <ProductListItem
-                    key={prod.id}
-                    id={prod.id}
-                    emoji={prod.emoji}
-                    name={prod.name}
-                    description={prod.description}
-                    price={prod.price}
-                    badges={prod.badges}
-                    badgeTypes={prod.badgeTypes as any}
-                  />
-                ))}
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

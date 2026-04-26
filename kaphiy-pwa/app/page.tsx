@@ -216,7 +216,7 @@ export default function SplashPage() {
                 letterSpacing: "0.08em",
               }}
             >
-              KHAPIY
+              KAPHY
             </span>
             <span
               style={{
@@ -225,20 +225,7 @@ export default function SplashPage() {
                 color: "#8a6555",
               }}
             >
-              Mesero Virtual IA · Mesa
-            </span>
-            <span
-              style={{
-                background: "#A27572",
-                color: "#fff9f4",
-                borderRadius: 6,
-                padding: "0.2rem 0.45rem",
-                fontSize: "0.7rem",
-                fontWeight: 700,
-                fontFamily: "var(--font-inter)",
-              }}
-            >
-              04
+              Mesero Virtual IA
             </span>
           </div>
         </div>

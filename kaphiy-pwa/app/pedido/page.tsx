@@ -1,47 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, CheckCircle, CreditCard, Banknote, Minus, Plus, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-// ── Tipos ────────────────────────────────────────────────────
-type BadgeType = "green" | "rose" | "muted";
 type PaymentMethod = "qr" | "cash";
 
 interface OrderItem {
   id: string;
-  emoji: string;
   name: string;
-  description: string;
   price: number;
   qty: number;
-  badges: string[];
-  badgeTypes: BadgeType[];
 }
-
-// ── Constantes ───────────────────────────────────────────────
-const ORDER_ITEMS: OrderItem[] = [
-  {
-    id: "latte-avellana",
-    emoji: "🫗",
-    name: "Latte de Avellana",
-    description: "Espresso doble · leche de avena · sirope",
-    price: 3.80,
-    qty: 1,
-    badges: ["Oat Milk", "Sin azúcar"],
-    badgeTypes: ["green", "muted"],
-  },
-  {
-    id: "galleta-praline",
-    emoji: "🍪",
-    name: "Galleta Praliné",
-    description: "Chocolate 70% · avellana caramelizada",
-    price: 1.80,
-    qty: 1,
-    badges: ["Artesanal"],
-    badgeTypes: ["muted"],
-  },
-];
 
 const IVA_RATE = 0.12;
 
@@ -50,9 +21,6 @@ const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; Icon: typeof CreditCa
   { id: "cash", label: "Efectivo en caja",   Icon: Banknote   },
 ];
 
-const AI_PREFERENCES = ["Sin azúcar", "Sin nuez", "Extra caliente"];
-
-// ── QR Placeholder ───────────────────────────────────────────
 function QRPlaceholder() {
   return (
     <div
@@ -86,7 +54,6 @@ function QRPlaceholder() {
   );
 }
 
-// ── Pantalla de confirmación ──────────────────────────────────
 function ConfirmationScreen({ total, onBack }: { total: number; onBack: () => void }) {
   return (
     <div
@@ -109,8 +76,7 @@ function ConfirmationScreen({ total, onBack }: { total: number; onBack: () => vo
       </p>
       <div className="praline-card" style={{ padding: "1rem 1.5rem" }}>
         <p style={{ fontSize: "0.8rem", color: "var(--color-praline-muted)" }}>
-          Mesa <strong style={{ color: "var(--color-praline-primary-dark)" }}>04</strong> · Total{" "}
-          <strong style={{ color: "var(--color-praline-primary-dark)" }}>${total.toFixed(2)}</strong>
+          Total <strong style={{ color: "var(--color-praline-primary-dark)" }}>${total.toFixed(2)}</strong>
         </p>
       </div>
       <button
@@ -124,25 +90,66 @@ function ConfirmationScreen({ total, onBack }: { total: number; onBack: () => vo
   );
 }
 
-// ── Página principal ─────────────────────────────────────────
 export default function PedidoPage() {
   const router = useRouter();
-  const [quantities, setQuantities] = useState<Record<string, number>>(
-    Object.fromEntries(ORDER_ITEMS.map((item) => [item.id, item.qty]))
-  );
+  
+  const [items, setItems] = useState<OrderItem[]>([]);
+  const [aiNotes, setAiNotes] = useState<string[]>([]);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qr");
   const [confirmed, setConfirmed] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("current_order");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setItems(parsed.cartItems || []);
+        setAiNotes(parsed.aiNotes || []);
+        
+        const initialQtys: Record<string, number> = {};
+        (parsed.cartItems || []).forEach((item: OrderItem) => {
+          initialQtys[item.id] = item.qty || 1;
+        });
+        setQuantities(initialQtys);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const updateQty = (id: string, delta: number) => {
     setQuantities((prev) => ({ ...prev, [id]: Math.max(1, (prev[id] ?? 1) + delta) }));
   };
 
-  const subtotal = ORDER_ITEMS.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 1), 0);
+  const subtotal = items.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 1), 0);
   const iva      = subtotal * IVA_RATE;
   const total    = subtotal + iva;
 
+  if (loading) return null;
+
   if (confirmed) {
-    return <ConfirmationScreen total={total} onBack={() => router.push("/inicio")} />;
+    return <ConfirmationScreen total={total} onBack={() => {
+      localStorage.removeItem("current_order");
+      localStorage.removeItem("chat_messages");
+      localStorage.removeItem("chat_session_id");
+      router.push("/inicio");
+    }} />;
+  }
+
+  if (items.length === 0) {
+    return (
+      <div style={{ minHeight: "100dvh", background: "var(--color-praline-bg)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", gap: "1.5rem", textAlign: "center" }}>
+        <span style={{ fontSize: "4rem" }}>🛒</span>
+        <h2 className="section-title">Tu carrito está vacío</h2>
+        <p style={{ color: "var(--color-praline-muted)", fontSize: "0.9rem" }}>Aún no has confirmado un pedido con KAPHY.</p>
+        <Link href="/chat" style={{ textDecoration: "none" }}>
+          <button className="btn-primary" style={{ padding: "0.8rem 2rem" }}>Volver al Chat</button>
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -183,33 +190,13 @@ export default function PedidoPage() {
 
       <div style={{ padding: "1rem 1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
 
-        {/* ── Banner IA ── */}
-        <div
-          style={{
-            background: "rgba(169,181,162,0.2)",
-            border: "1px solid rgba(169,181,162,0.4)",
-            borderRadius: 20,
-            padding: "0.875rem 1rem",
-          }}
-        >
-          <span style={{ color: "#4a5e44", fontSize: "0.7rem", fontWeight: 700 }}>
-            ✦ KHAPIY ENTENDIÓ:
-          </span>
-          <p style={{ fontSize: "0.85rem", color: "var(--color-praline-primary-dark)", lineHeight: 1.5, marginTop: "0.35rem", fontStyle: "italic" }}>
-            &ldquo;Te anoté para ti: 1{" "}
-            <strong>Latte de Avellana con leche de avena</strong> y 1{" "}
-            <strong>Galleta de Praliné al chocolate</strong> 🍪&rdquo;
-          </p>
-        </div>
-
         {/* ── Tu pedido ── */}
         <div>
           <p className="section-label">TU PEDIDO</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            {ORDER_ITEMS.map((item) => (
+            {items.map((item) => (
               <div key={item.id} className="praline-card" style={{ padding: "0.875rem" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-                  {/* Emoji */}
                   <div
                     style={{
                       width: 44, height: 44, borderRadius: 14,
@@ -218,11 +205,10 @@ export default function PedidoPage() {
                       fontSize: "1.3rem", flexShrink: 0,
                     }}
                   >
-                    {item.emoji}
+                    ☕
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    {/* Nombre + precio */}
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--color-praline-primary-dark)" }}>
                         {item.name}
@@ -232,22 +218,7 @@ export default function PedidoPage() {
                       </span>
                     </div>
 
-                    {/* Descripción */}
-                    <p style={{ fontSize: "0.72rem", color: "var(--color-praline-muted)", margin: "0.15rem 0 0.4rem" }}>
-                      {item.description}
-                    </p>
-
-                    {/* Badges + Stepper */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
-                        {item.badges.map((badge, i) => (
-                          <span key={badge} className={`badge badge-${item.badgeTypes[i]}`}>
-                            {badge}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Qty stepper */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginTop: "0.5rem" }}>
                       <div
                         style={{
                           display: "flex", alignItems: "center", gap: "0.5rem",
@@ -291,20 +262,19 @@ export default function PedidoPage() {
         </div>
 
         {/* ── Notas IA ── */}
-        <div className="praline-card" style={{ padding: "0.875rem" }}>
-          <p className="section-label">NOTAS DE LA IA</p>
-          <p style={{ fontSize: "0.72rem", color: "var(--color-praline-muted)", marginBottom: "0.4rem" }}>
-            ✦ KHAPIY detectó estas preferencias:
-          </p>
-          <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", marginBottom: "0.4rem" }}>
-            {AI_PREFERENCES.map((pref) => (
-              <span key={pref} className="badge badge-muted">{pref}</span>
-            ))}
+        {aiNotes.length > 0 && (
+          <div className="praline-card" style={{ padding: "0.875rem" }}>
+            <p className="section-label">NOTAS DE LA IA</p>
+            <p style={{ fontSize: "0.72rem", color: "var(--color-praline-muted)", marginBottom: "0.4rem" }}>
+              ✦ KAPHY anotó estas preferencias:
+            </p>
+            <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", marginBottom: "0.4rem" }}>
+              {aiNotes.map((pref) => (
+                <span key={pref} className="badge badge-muted">{pref}</span>
+              ))}
+            </div>
           </div>
-          <p style={{ fontSize: "0.67rem", color: "var(--color-praline-muted)", fontStyle: "italic" }}>
-            Basado en tu conversación en el chat.
-          </p>
-        </div>
+        )}
 
         {/* ── Resumen ── */}
         <div className="praline-card" style={{ padding: "0.875rem" }}>
@@ -349,7 +319,6 @@ export default function PedidoPage() {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                    {/* Radio circle */}
                     <div
                       style={{
                         width: 18, height: 18, borderRadius: 9999,
@@ -400,8 +369,7 @@ export default function PedidoPage() {
           <Lock size={14} color="var(--color-praline-rose)" style={{ flexShrink: 0, marginTop: 2 }} />
           <p style={{ fontSize: "0.68rem", color: "var(--color-praline-muted)", lineHeight: 1.5 }}>
             <strong style={{ color: "var(--color-praline-rose)" }}>Privacidad protegida.</strong> Tus datos son
-            tratados bajo la <strong>LOPDP Ecuador</strong> (Ley Orgánica de Protección de Datos Personales).
-            Solo procesamos tu pedido.
+            tratados bajo la <strong>LOPDP Ecuador</strong>. Solo procesamos tu pedido.
           </p>
         </div>
       </div>
