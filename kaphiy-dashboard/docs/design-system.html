@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Praline — Sistema de Diseño</title>
+  <meta name="description" content="Guía visual completa del sistema de diseño de la marca Praline." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="components.css" />
+
+  <style>
+    /* ── Layout de la guía ───────────────────────────────────── */
+    body { min-height: 100vh; }
+
+    .ds-page {
+      padding-block: var(--space-16);
+    }
+
+    /* Sección */
+    .ds-section {
+      margin-bottom: var(--space-16);
+    }
+    .ds-section-title {
+      font-family: var(--font-serif);
+      font-size: var(--text-2xl);
+      color: var(--color-primary);
+      margin-bottom: var(--space-2);
+      padding-bottom: var(--space-3);
+      border-bottom: 2px solid var(--color-primary);
+    }
+    .ds-section-desc {
+      color: var(--color-text-muted);
+      font-size: var(--text-sm);
+      margin-bottom: var(--space-8);
+    }
+
+    /* Grids de tokens */
+    .ds-grid {
+      display: grid;
+      gap: var(--space-4);
+    }
+    .ds-grid-2  { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    .ds-grid-3  { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .ds-grid-4  { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+
+    /* Chip de color */
+    .color-chip {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: var(--border);
+      box-shadow: var(--shadow-xs);
+    }
+    .color-chip-swatch {
+      height: 80px;
+      width: 100%;
+    }
+    .color-chip-info {
+      background: var(--color-surface);
+      padding: var(--space-3) var(--space-4);
+    }
+    .color-chip-name {
+      font-family: var(--font-sans);
+      font-size: var(--text-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text);
+    }
+    .color-chip-hex {
+      font-family: 'Courier New', monospace;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+    .color-chip-role {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Muestra tipográfica */
+    .type-sample {
+      background: var(--color-surface);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+    }
+    .type-meta {
+      font-family: 'Courier New', monospace;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-2);
+      display: block;
+    }
+
+    /* Muestra de bordes */
+    .radius-sample {
+      background: var(--color-bg-alt);
+      border: 2px solid var(--color-primary);
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .radius-label {
+      font-size: var(--text-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-muted);
+      text-align: center;
+      margin-top: var(--space-2);
+    }
+    .radius-group { display: flex; flex-direction: column; }
+
+    /* Grupo botones */
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    /* Muestra de sombras */
+    .shadow-sample {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-muted);
+    }
+
+    /* Hero de demostración */
+    .demo-hero {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+      border-radius: var(--radius-xl);
+      padding: var(--space-12) var(--space-10);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-hero::before {
+      content: '';
+      position: absolute;
+      right: -60px; top: -60px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: rgba(169,181,162,.18);
+    }
+    .demo-hero::after {
+      content: '';
+      position: absolute;
+      right: 60px; bottom: -80px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(162,117,114,.15);
+    }
+    .demo-hero h2 {
+      font-family: var(--font-serif);
+      font-size: var(--text-3xl);
+      color: var(--color-text-inverse);
+    }
+    .demo-hero p { color: rgba(255,249,244,.75); max-width: 480px; }
+    .demo-hero .btn-group { position: relative; z-index: 1; }
+
+    /* Card demo */
+    .demo-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: var(--space-4);
+    }
+    .card-accent-top {
+      height: 4px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-4);
+    }
+
+    /* Form demo */
+    .form-demo {
+      background: var(--color-surface);
+      border: var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      max-width: 480px;
+    }
+    .form-demo h3 {
+      margin-bottom: var(--space-6);
+      font-size: var(--text-xl);
+    }
+    .form-demo .form-group + .form-group { margin-top: var(--space-4); }
+    .form-demo .btn { margin-top: var(--space-6); }
+
+    /* Header demo */
+    .header-demo {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Header real ─────────────────────────────────────────── -->
+  <header class="header">
+    <a href="#" class="header-brand">Praline</a>
+    <nav class="header-nav">
+      <a href="#colores">Colores</a>
+      <a href="#tipografia">Tipografía</a>
+      <a href="#componentes">Componentes</a>
+      <a href="#demo">Demo</a>
+    </nav>
+    <div style="margin-left:var(--space-6);">
+      <a href="#demo" class="btn btn-sm" style="background:var(--color-accent-rose);color:#fff;">Ver Demo</a>
+    </div>
+  </header>
+
+  <main class="container ds-page">
+
+    <!-- ── Intro ──────────────────────────────────────────────── -->
+    <div style="margin-bottom:var(--space-12);">
+      <span class="badge badge-green" style="margin-bottom:var(--space-3);display:inline-block;">v1.0</span>
+      <h1 style="font-size:var(--text-4xl);margin-bottom:var(--space-4);">Sistema de Diseño <em>Praline</em></h1>
+      <p style="max-width:600px;font-size:var(--text-lg);color:var(--color-text-muted);">
+        Guía visual del manual de marca: paleta de color, tipografía Serif + Sans-Serif, bordes redondeados de 20 px y componentes listos para usar.
+      </p>
+    </div>
+
+    <!-- ── 1. COLORES ─────────────────────────────────────────── -->
+    <section class="ds-section" id="colores">
+      <h2 class="ds-section-title">1. Paleta de Color</h2>
+      <p class="ds-section-desc">Basada en el manual de marca Praline. Todos los valores están expuestos como variables CSS en <code>tokens.css</code>.</p>
+
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Colores principales</h3>
+      <div class="ds-grid ds-grid-4" style="margin-bottom:var(--space-8);">
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#565243;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Verde Praliné</div>
+            <div class="color-chip-hex">#565243</div>
+            <div class="color-chip-role">Header · Botones</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#EFE3D6;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Crema Suave</div>
+            <div class="color-chip-hex">#EFE3D6</div>
+            <div class="color-chip-role">Fondo de pantalla</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#A27572;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Rosa Viejo</div>
+            <div class="color-chip-hex">#A27572</div>
+            <div class="color-chip-role">Acento principal</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#A9B5A2;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Verde Claro</div>
+            <div class="color-chip-hex">#A9B5A2</div>
+            <div class="color-chip-role">Acento secundario</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#5A3A2E;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Marrón Café</div>
+            <div class="color-chip-hex">#5A3A2E</div>
+            <div class="color-chip-role">Texto principal</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Variantes de sistema</h3>
+      <div class="ds-grid ds-grid-4">
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#3e3b30;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Primario Oscuro</div>
+            <div class="color-chip-hex">#3e3b30</div>
+            <div class="color-chip-role">--color-primary-dark</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#716d5c;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Primario Claro</div>
+            <div class="color-chip-hex">#716d5c</div>
+            <div class="color-chip-role">--color-primary-light</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#f9f1e9;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Fondo Alterno</div>
+            <div class="color-chip-hex">#f9f1e9</div>
+            <div class="color-chip-role">--color-bg-alt</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#fff9f4;border:1px solid #e5d6c8;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Superficie</div>
+            <div class="color-chip-hex">#fff9f4</div>
+            <div class="color-chip-role">--color-surface</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#8a6555;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Texto Muted</div>
+            <div class="color-chip-hex">#8a6555</div>
+            <div class="color-chip-role">--color-text-muted</div>
+          </div>
+        </div>
+        <div class="color-chip">
+          <div class="color-chip-swatch" style="background:#d8c8b8;"></div>
+          <div class="color-chip-info">
+            <div class="color-chip-name">Borde</div>
+            <div class="color-chip-hex">#d8c8b8</div>
+            <div class="color-chip-role">--color-border</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. TIPOGRAFÍA ──────────────────────────────────────── -->
+    <section class="ds-section" id="tipografia">
+      <h2 class="ds-section-title">2. Tipografía</h2>
+      <p class="ds-section-desc">
+        <strong>Serif</strong> (Playfair Display) para títulos y encabezados — <strong>Sans-Serif</strong> (Inter) para botones, etiquetas e interfaces.
+      </p>
+
+      <div class="ds-grid ds-grid-2" style="margin-bottom:var(--space-8);">
+        <div class="type-sample">
+          <span class="type-meta">Playfair Display — font-serif · Títulos</span>
+          <p style="font-family:'Playfair Display',serif;font-size:var(--text-2xl);font-weight:700;line-height:1.2;">
+            El arte del chocolate Praline
+          </p>
+          <p style="font-family:'Playfair Display',serif;font-size:var(--text-lg);font-style:italic;margin-top:var(--space-3);color:var(--color-text-muted);">
+            "Una experiencia sensorial única"
+          </p>
+        </div>
+        <div class="type-sample">
+          <span class="type-meta">Inter — font-sans · UI / Botones</span>
+          <p style="font-family:'Inter',sans-serif;font-size:var(--text-base);margin-bottom:var(--space-3);">
+            Texto regular para párrafos e interfaces. Legible y moderno.
+          </p>
+          <p style="font-family:'Inter',sans-serif;font-size:var(--text-sm);font-weight:500;color:var(--color-text-muted);">
+            BOTÓN DE ACCIÓN · Etiqueta · Navegación
+          </p>
+        </div>
+      </div>
+
+      <div class="ds-grid" style="gap:var(--space-3);">
+        <div class="type-sample">
+          <span class="type-meta">h1 — Playfair Display 700 · 3.05rem</span>
+          <h1>Título Principal h1</h1>
+        </div>
+        <div class="type-sample">
+          <span class="type-meta">h2 — Playfair Display 700 · 2.44rem</span>
+          <h2>Encabezado Secundario h2</h2>
+        </div>
+        <div class="type-sample">
+          <span class="type-meta">h3 — Playfair Display 700 · 1.95rem</span>
+          <h3>Sección Terciaria h3</h3>
+        </div>
+        <div class="type-sample">
+          <span class="type-meta">h4 — Playfair Display 700 · 1.56rem</span>
+          <h4>Subtítulo h4</h4>
+        </div>
+        <div class="type-sample">
+          <span class="type-meta">body — Inter 400 · 1rem</span>
+          <p>Nuestras pralinés artesanales están elaboradas con cacao de origen único, seleccionado con cuidado para garantizar una experiencia de sabor auténtica y memorable.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 3. BORDES ──────────────────────────────────────────── -->
+    <section class="ds-section">
+      <h2 class="ds-section-title">3. Bordes Redondeados</h2>
+      <p class="ds-section-desc">Escala de border-radius. El valor principal de la marca es <strong>20px (radius-lg)</strong>.</p>
+      <div class="ds-grid ds-grid-4">
+        <div class="radius-group">
+          <div class="radius-sample" style="border-radius:8px;">8px</div>
+          <div class="radius-label">--radius-sm</div>
+        </div>
+        <div class="radius-group">
+          <div class="radius-sample" style="border-radius:16px;">16px</div>
+          <div class="radius-label">--radius-md</div>
+        </div>
+        <div class="radius-group">
+          <div class="radius-sample" style="border-radius:20px;border-color:var(--color-accent-rose);background:rgba(162,117,114,.08);">
+            <strong>20px ★</strong>
+          </div>
+          <div class="radius-label" style="color:var(--color-accent-rose);font-weight:600;">--radius-lg (principal)</div>
+        </div>
+        <div class="radius-group">
+          <div class="radius-sample" style="border-radius:28px;">28px</div>
+          <div class="radius-label">--radius-xl</div>
+        </div>
+        <div class="radius-group">
+          <div class="radius-sample" style="border-radius:9999px;">Píldora</div>
+          <div class="radius-label">--radius-full</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 4. COMPONENTES ─────────────────────────────────────── -->
+    <section class="ds-section" id="componentes">
+      <h2 class="ds-section-title">4. Componentes</h2>
+      <p class="ds-section-desc">Todos los componentes usan border-radius de 20px y las variables de color del manual de marca.</p>
+
+      <!-- Botones -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Botones</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <p class="type-meta" style="margin-bottom:var(--space-4);">.btn-primary / .btn-secondary / .btn-accent-rose / .btn-accent-green / .btn-ghost</p>
+        <div class="btn-group">
+          <button class="btn btn-primary">Primario</button>
+          <button class="btn btn-secondary">Secundario</button>
+          <button class="btn btn-accent-rose">Rosa Viejo</button>
+          <button class="btn btn-accent-green">Verde Claro</button>
+          <button class="btn btn-ghost">Ghost</button>
+        </div>
+        <hr class="divider" />
+        <p class="type-meta" style="margin-bottom:var(--space-4);">Tamaños: .btn-sm / .btn (default) / .btn-lg</p>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm">Pequeño</button>
+          <button class="btn btn-primary">Normal</button>
+          <button class="btn btn-primary btn-lg">Grande</button>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Badges</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div class="btn-group">
+          <span class="badge badge-primary">Primario</span>
+          <span class="badge badge-rose">Destacado</span>
+          <span class="badge badge-green">Disponible</span>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Formularios</h3>
+      <div class="card" style="margin-bottom:var(--space-6);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);">
+          <div class="form-group">
+            <label class="label" for="demo-nombre">Nombre</label>
+            <input class="input" id="demo-nombre" type="text" placeholder="Tu nombre completo" />
+          </div>
+          <div class="form-group">
+            <label class="label" for="demo-email">Correo electrónico</label>
+            <input class="input" id="demo-email" type="email" placeholder="hola@praline.com" />
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="label" for="demo-mensaje">Mensaje</label>
+            <textarea class="textarea" id="demo-mensaje" placeholder="Escribe aquí tu mensaje…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Cards</h3>
+      <div class="demo-cards-grid" style="margin-bottom:var(--space-6);">
+        <div class="card">
+          <div class="card-accent-top" style="background:var(--color-primary);"></div>
+          <span class="badge badge-primary" style="margin-bottom:var(--space-3);">Primario</span>
+          <h4>Chocolate Oscuro 70%</h4>
+          <p style="font-size:var(--text-sm);margin-top:var(--space-2);">Ganache de cacao ecuatoriano con notas a frutas del bosque y un acabado ateriopelado.</p>
+          <div style="margin-top:var(--space-4);">
+            <button class="btn btn-primary btn-sm">Ver detalles</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-accent-top" style="background:var(--color-accent-rose);"></div>
+          <span class="badge badge-rose" style="margin-bottom:var(--space-3);">Edición especial</span>
+          <h4>Praliné de Avellana</h4>
+          <p style="font-size:var(--text-sm);margin-top:var(--space-2);">Avellanas caramelizadas envueltas en chocolate con leche cremoso y un toque de sal marina.</p>
+          <div style="margin-top:var(--space-4);">
+            <button class="btn btn-accent-rose btn-sm">Ver detalles</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-accent-top" style="background:var(--color-accent-green);"></div>
+          <span class="badge badge-green" style="margin-bottom:var(--space-3);">Temporada</span>
+          <h4>Trufas de Menta</h4>
+          <p style="font-size:var(--text-sm);margin-top:var(--space-2);">Suave ganache de menta fresca recubierto de chocolate blanco con chispas de pistacho.</p>
+          <div style="margin-top:var(--space-4);">
+            <button class="btn btn-accent-green btn-sm">Ver detalles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sombras -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Sombras</h3>
+      <div class="ds-grid ds-grid-4">
+        <div>
+          <div class="shadow-sample" style="box-shadow:var(--shadow-xs);">XS</div>
+          <div class="radius-label">--shadow-xs</div>
+        </div>
+        <div>
+          <div class="shadow-sample" style="box-shadow:var(--shadow-sm);">SM</div>
+          <div class="radius-label">--shadow-sm</div>
+        </div>
+        <div>
+          <div class="shadow-sample" style="box-shadow:var(--shadow-md);">MD</div>
+          <div class="radius-label">--shadow-md</div>
+        </div>
+        <div>
+          <div class="shadow-sample" style="box-shadow:var(--shadow-lg);">LG</div>
+          <div class="radius-label">--shadow-lg</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 5. DEMO ─────────────────────────────────────────────── -->
+    <section class="ds-section" id="demo">
+      <h2 class="ds-section-title">5. Demo de Composición</h2>
+      <p class="ds-section-desc">Ejemplo de cómo los tokens y componentes se combinan en una página real.</p>
+
+      <!-- Header demo display -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Header / Navegación</h3>
+      <div class="header-demo" style="margin-bottom:var(--space-8);">
+        <div class="header" style="position:static;">
+          <a class="header-brand">Praline</a>
+          <nav class="header-nav">
+            <a href="#">Inicio</a>
+            <a href="#">Productos</a>
+            <a href="#">Nosotros</a>
+            <a href="#">Contacto</a>
+          </nav>
+          <div style="margin-left:var(--space-6);">
+            <button class="btn btn-sm" style="background:var(--color-accent-rose);color:#fff;">Ordenar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Hero / Banner</h3>
+      <div class="demo-hero" style="margin-bottom:var(--space-8);">
+        <span class="badge" style="background:rgba(169,181,162,.3);color:#d5e2d2;width:fit-content;">Artesanal · Ecuador</span>
+        <h2>Descubre el placer<br/>del chocolate Praline</h2>
+        <p>Elaborados con ingredientes de origen único, nuestros chocolates son una experiencia sensorial sin igual.</p>
+        <div class="btn-group">
+          <button class="btn btn-lg" style="background:var(--color-text-inverse);color:var(--color-primary);">Ver Colección</button>
+          <button class="btn btn-lg btn-ghost" style="border-color:rgba(255,249,244,.4);color:var(--color-text-inverse);">Conocernos</button>
+        </div>
+      </div>
+
+      <!-- Formulario de contacto -->
+      <h3 style="font-size:var(--text-lg);margin-bottom:var(--space-4);">Formulario de Contacto</h3>
+      <div class="form-demo">
+        <h3>Contáctanos</h3>
+        <div class="form-group">
+          <label class="label" for="c-nombre">Nombre completo *</label>
+          <input class="input" id="c-nombre" type="text" placeholder="María García" />
+        </div>
+        <div class="form-group" style="margin-top:var(--space-4);">
+          <label class="label" for="c-email">Correo electrónico *</label>
+          <input class="input" id="c-email" type="email" placeholder="maria@email.com" />
+        </div>
+        <div class="form-group" style="margin-top:var(--space-4);">
+          <label class="label" for="c-mensaje">¿En qué podemos ayudarte?</label>
+          <textarea class="textarea" id="c-mensaje" placeholder="Cuéntanos sobre tu pedido especial…"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full">Enviar Mensaje</button>
+      </div>
+    </section>
+
+    <!-- ── Footer ─────────────────────────────────────────────── -->
+    <footer style="border-top:var(--border);padding-top:var(--space-8);margin-top:var(--space-8);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-4);">
+      <div>
+        <span style="font-family:var(--font-serif);font-size:var(--text-lg);font-weight:700;color:var(--color-primary);">Praline</span>
+        <p style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:4px;">Sistema de Diseño v1.0</p>
+      </div>
+      <div style="display:flex;gap:var(--space-3);">
+        <span class="badge badge-primary">tokens.css</span>
+        <span class="badge badge-rose">components.css</span>
+        <span class="badge badge-green">design-system.html</span>
+      </div>
+    </footer>
+
+  </main>
+</body>
+</html>
