@@ -14,7 +14,7 @@ interface OrderItem {
   qty: number;
 }
 
-const IVA_RATE = 0.12;
+const IVA_RATE = 0.15;
 
 const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; Icon: typeof CreditCard }[] = [
   { id: "qr",   label: "Transferencia / QR", Icon: CreditCard },
@@ -281,7 +281,7 @@ export default function PedidoPage() {
           <p className="section-label">RESUMEN</p>
           {[
             { label: "Subtotal",  value: subtotal },
-            { label: "IVA 12%",   value: iva      },
+            { label: "IVA 15%",   value: iva      },
             { label: "Servicio",  value: 0        },
           ].map((row) => (
             <div key={row.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.4rem" }}>

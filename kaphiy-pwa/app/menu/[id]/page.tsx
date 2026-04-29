@@ -157,7 +157,7 @@ export default function ProductDetailPage() {
 
       {/* CTA */}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, padding: "1rem 1.25rem 1.5rem", background: "linear-gradient(to top, #fff9f4 60%, transparent)", zIndex: 50 }}>
-        <Link href="/pedido" style={{ textDecoration: "none" }}>
+        <Link href={`/chat?msg=${encodeURIComponent("Quiero pedir un " + product.name)}`} style={{ textDecoration: "none" }}>
           <button className="btn-primary">
             <MessageSquare size={17} />
             Pedir por Chat con IA

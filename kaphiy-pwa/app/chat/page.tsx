@@ -1,12 +1,14 @@
 "use client";
 
+import { Suspense, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useChat } from "@/hooks/useChat";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { AiBubble, UserBubble } from "@/components/chat/ChatBubble";
 import { DateDivider } from "@/components/chat/DateDivider";
 
-export default function ChatPage() {
+function ChatContent() {
   const {
     messages,
     inputValue,
@@ -17,8 +19,20 @@ export default function ChatPage() {
     handleSend,
     toggleRecording,
     messagesEndRef,
-    inputRef
+    inputRef,
+    isInitialized
   } = useChat();
+
+  const searchParams = useSearchParams();
+  const msg = searchParams.get("msg");
+  const hasSentRef = useRef(false);
+
+  useEffect(() => {
+    if (isInitialized && msg && !hasSentRef.current) {
+      hasSentRef.current = true;
+      handleSend(msg);
+    }
+  }, [isInitialized, msg, handleSend]);
 
   return (
     <div className="chat-screen">
@@ -36,11 +50,11 @@ export default function ChatPage() {
 
         <DateDivider label="HOY" />
 
-        {messages.map((msg) =>
-          msg.role === "ai" ? (
-            <AiBubble key={msg.id} message={msg} />
+        {messages.map((m) =>
+          m.role === "ai" ? (
+            <AiBubble key={m.id} message={m} />
           ) : (
-            <UserBubble key={msg.id} message={msg} />
+            <UserBubble key={m.id} message={m} />
           )
         )}
 
@@ -73,5 +87,13 @@ export default function ChatPage() {
         inputRef={inputRef}
       />
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="chat-screen" />}>
+      <ChatContent />
+    </Suspense>
   );
 }

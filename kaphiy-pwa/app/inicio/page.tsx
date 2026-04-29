@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Menu, Search, ChevronRight, Sparkles, TrendingUp } from "lucide-react";
+import { MapPin, Search, ChevronRight, Sparkles, TrendingUp } from "lucide-react";
 import { BottomNav } from "@/components/pwa/BottomNav";
 import { FeaturedCard } from "@/components/pwa/FeaturedCard";
 import { ProductListItem } from "@/components/pwa/ProductListItem";
@@ -72,9 +72,6 @@ export default function InicioPage() {
             <MapPin size={13} color="currentColor" />
             Baños de Agua Santa, Ecuador
           </div>
-          <button className="page-header__menu-btn" aria-label="Menú principal">
-            <Menu size={20} color="#fff9f4" />
-          </button>
         </div>
 
         <div className="page-header__brand">

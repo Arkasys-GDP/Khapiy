@@ -195,6 +195,7 @@ export function useChat() {
     handleSend,
     toggleRecording,
     messagesEndRef,
-    inputRef
+    inputRef,
+    isInitialized
   };
 }
