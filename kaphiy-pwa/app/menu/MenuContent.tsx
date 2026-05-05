@@ -5,15 +5,35 @@ import { MapPin, Search, ChevronDown, ChevronRight } from "lucide-react";
 import { BottomNav } from "@/components/pwa/BottomNav";
 import { ProductListItem } from "@/components/pwa/ProductListItem";
 import { getProducts, getCategories, adaptProduct, ApiCategory } from "@/lib/api";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type AdaptedProduct = ReturnType<typeof adaptProduct>;
 
+const CATEGORY_EMOJIS: Record<string, string> = {
+  café: "☕",
+  bebidas: "🧋",
+  postres: "🍰",
+  snacks: "🥪",
+  especiales: "✨",
+  default: "🍽️",
+};
+
+function getCategoryEmoji(name: string): string {
+  const key = Object.keys(CATEGORY_EMOJIS).find((k) => name.toLowerCase().includes(k));
+  return key ? CATEGORY_EMOJIS[key] : CATEGORY_EMOJIS.default;
+}
+
 export function MenuContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialCategory = searchParams.get("category");
+
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState<AdaptedProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(initialCategory);
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (cat: string) => {
@@ -41,7 +61,11 @@ export function MenuContent() {
       )
     : null;
 
-  const grouped = products.reduce<Record<string, AdaptedProduct[]>>((acc, p) => {
+  const productsToGroup = activeCategory && !search.trim()
+    ? products.filter((p) => p.categoryLabel.toLowerCase().includes(activeCategory) || p.category.toLowerCase().includes(activeCategory))
+    : products;
+
+  const grouped = productsToGroup.reduce<Record<string, AdaptedProduct[]>>((acc, p) => {
     const key = p.categoryLabel;
     if (!acc[key]) acc[key] = [];
     acc[key].push(p);
@@ -98,6 +122,43 @@ export function MenuContent() {
           <p style={{ fontSize: "0.7rem", color: "var(--color-praline-rose)" }}>
             ⚠️ No se pudo conectar con el servidor · Por favor, intenta más tarde
           </p>
+        </div>
+      )}
+
+      {/* ── Categorías (Filtro) ── */}
+      {!loading && !error && (
+        <div style={{ padding: "1.25rem 1.25rem 0", background: "var(--color-praline-bg)" }}>
+          <div style={{ display: "flex", gap: "0.75rem", overflowX: "auto" }} className="hide-scrollbar">
+            <div
+              className="category-chip"
+              onClick={() => { setActiveCategory(null); router.replace("/menu"); }}
+            >
+              <div className={`category-chip-icon ${!activeCategory ? "active" : "inactive"}`}>
+                <span style={{ fontSize: "1.3rem" }}>📋</span>
+              </div>
+              <span className="category-chip-label" style={{ fontWeight: !activeCategory ? 600 : 400 }}>
+                Todos
+              </span>
+            </div>
+            {categories.map((cat) => {
+              const catKey = cat.name.toLowerCase();
+              const isActive = activeCategory === catKey;
+              return (
+                <div
+                  key={cat.id}
+                  className="category-chip"
+                  onClick={() => { setActiveCategory(catKey); router.replace(`/menu?category=${encodeURIComponent(catKey)}`); }}
+                >
+                  <div className={`category-chip-icon ${isActive ? "active" : "inactive"}`}>
+                    <span style={{ fontSize: "1.3rem" }}>{getCategoryEmoji(cat.name)}</span>
+                  </div>
+                  <span className="category-chip-label" style={{ fontWeight: isActive ? 600 : 400 }}>
+                    {cat.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, CheckCircle, CreditCard, Banknote, Minus, Plus, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createOrder } from "@/lib/api";
 
 type PaymentMethod = "qr" | "cash";
 
@@ -99,6 +100,8 @@ export default function PedidoPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qr");
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("current_order");
@@ -122,6 +125,35 @@ export default function PedidoPage() {
 
   const updateQty = (id: string, delta: number) => {
     setQuantities((prev) => ({ ...prev, [id]: Math.max(1, (prev[id] ?? 1) + delta) }));
+  };
+
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const payload = {
+        items: items.map(item => ({
+          productId: parseInt(item.id, 10),
+          quantity: quantities[item.id] ?? 1,
+          aiNotes: aiNotes.length > 0 ? aiNotes.join(", ") : undefined,
+        })),
+        paymentStatus: 'PENDING' as const,
+        kitchenStatus: 'PENDING' as const,
+      };
+      
+      const chatSessionId = localStorage.getItem("chat_session_id");
+      if (chatSessionId) {
+        (payload as any).chatSessionId = chatSessionId;
+      }
+
+      await createOrder(payload);
+      setConfirmed(true);
+    } catch (err) {
+      console.error(err);
+      setSubmitError("Error al enviar el pedido. Por favor intenta de nuevo.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const subtotal = items.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 1), 0);
@@ -296,7 +328,7 @@ export default function PedidoPage() {
           </div>
         </div>
 
-        {/* ── Método de pago ── */}
+        {/* SECCIÓN DE PAGO COMENTADA A PETICIÓN DEL USUARIO
         <div>
           <p className="section-label">MÉTODO DE PAGO</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -343,7 +375,6 @@ export default function PedidoPage() {
           </div>
         </div>
 
-        {/* ── QR Code ── */}
         {paymentMethod === "qr" && (
           <div className="praline-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
             <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-praline-primary-dark)", letterSpacing: "0.08em" }}>
@@ -356,6 +387,7 @@ export default function PedidoPage() {
             </p>
           </div>
         )}
+        */}
 
         {/* ── Privacidad ── */}
         <div
@@ -383,9 +415,19 @@ export default function PedidoPage() {
           zIndex: 50,
         }}
       >
-        <button className="btn-primary" onClick={() => setConfirmed(true)} style={{ gap: "0.5rem" }}>
+        {submitError && (
+          <div style={{ color: "var(--color-praline-rose)", fontSize: "0.8rem", textAlign: "center", marginBottom: "0.5rem" }}>
+            {submitError}
+          </div>
+        )}
+        <button 
+          className="btn-primary" 
+          onClick={handleConfirm} 
+          disabled={isSubmitting}
+          style={{ gap: "0.5rem", opacity: isSubmitting ? 0.7 : 1 }}
+        >
           <CheckCircle size={17} />
-          Confirmar y enviar a cocina
+          {isSubmitting ? "Enviando pedido..." : "Confirmar y enviar a cocina"}
         </button>
       </div>
     </div>

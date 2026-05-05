@@ -58,6 +58,33 @@ export async function getCategories(): Promise<ApiCategory[]> {
   return get<ApiCategory[]>("/categories");
 }
 
+// ─── Endpoints de Órdenes ─────────────────────────────────────────────────────
+
+export interface CreateOrderDto {
+  tableId?: number;
+  chatSessionId?: string;
+  paymentCode?: string;
+  paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+  kitchenStatus?: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+  items: {
+    productId: number;
+    quantity: number;
+    aiNotes?: string;
+  }[];
+}
+
+export async function createOrder(data: CreateOrderDto): Promise<any> {
+  const res = await fetch(`${BASE_URL}/orders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error(`API error ${res.status} al crear la orden`);
+  }
+  return res.json();
+}
+
 // ─── Utilidades de adaptación de datos ────────────────────────────────────────
 
 export function adaptProduct(p: ApiProduct) {

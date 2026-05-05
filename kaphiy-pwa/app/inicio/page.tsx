@@ -29,7 +29,6 @@ export default function InicioPage() {
   const router = useRouter();
   const [products, setProducts] = useState<AdaptedProduct[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -38,7 +37,6 @@ export default function InicioPage() {
       .then(([prods, cats]) => {
         setProducts(prods.map(adaptProduct));
         setCategories(cats);
-        if (cats.length > 0) setActiveCategory(cats[0].name.toLowerCase());
         setLoading(false);
       })
       .catch(() => {
@@ -47,21 +45,13 @@ export default function InicioPage() {
       });
   }, []);
 
-  const filteredProducts = activeCategory
-    ? products.filter(
-        (p) =>
-          p.categoryLabel.toLowerCase().includes(activeCategory) ||
-          p.category.toLowerCase().includes(activeCategory)
-      )
-    : products;
-
   const aiRecommendations = products.slice(0, 3).map((p, i) => ({
     product: p,
     label: i === 0 ? "Recomendado" : i === 1 ? "Maridaje" : "Tendencia",
     labelType: (["history", "pairing", "trending"] as const)[i],
   }));
 
-  const popularItems = filteredProducts.slice(0, 6);
+  const popularItems = products.slice(0, 6);
 
   return (
     <div className="page-screen">
@@ -108,19 +98,18 @@ export default function InicioPage() {
               ))
             : categories.map((cat) => {
                 const catKey = cat.name.toLowerCase();
-                const isActive = activeCategory === catKey;
                 return (
                   <div
                     key={cat.id}
                     className="category-chip"
-                    onClick={() => setActiveCategory(catKey)}
+                    onClick={() => router.push(`/menu?category=${encodeURIComponent(catKey)}`)}
                   >
-                    <div className={`category-chip-icon ${isActive ? "active" : "inactive"}`}>
+                    <div className="category-chip-icon inactive">
                       <span style={{ fontSize: "1.3rem" }}>{getCategoryEmoji(cat.name)}</span>
                     </div>
                     <span
                       className="category-chip-label"
-                      style={{ fontWeight: isActive ? 600 : 400 }}
+                      style={{ fontWeight: 400 }}
                     >
                       {cat.name}
                     </span>
