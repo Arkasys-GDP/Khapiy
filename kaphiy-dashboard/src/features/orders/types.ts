@@ -1,5 +1,7 @@
 import type { OrderStatus } from "./lib/statusMachine";
 
+export type PaymentStatus = "PENDING" | "PAID" | "CANCELLED";
+
 export interface OrderItem {
   id: string;
   name: string;
@@ -17,6 +19,10 @@ export interface Order {
   tableNumber: number | string;
   paxCount: number;
   status: OrderStatus;
+  /** Read-only — payment is owned by the customer PWA / cashier flow. */
+  paymentStatus: PaymentStatus;
+  /** Order total — informational for kitchen view. */
+  total: number;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;

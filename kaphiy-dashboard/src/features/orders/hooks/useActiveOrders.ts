@@ -3,13 +3,13 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetcher } from "@/src/shared/api/fetcher";
-import { adaptOrders, adaptStats, type DbOrder } from "@/src/shared/api/adapter";
 import { useKaphiyStore } from "../store";
 import { useAuthStore } from "@/src/features/auth/store/authSlice";
+import type { Order, OrderStats } from "../types";
 
 interface ActiveOrdersResponse {
-  orders: DbOrder[];
-  stats: { in_prep: number; alerts: number; completed_today: number; avg_time_minutes: number };
+  orders: Order[];
+  stats: OrderStats;
 }
 
 export function useActiveOrders() {
@@ -27,8 +27,8 @@ export function useActiveOrders() {
 
   useEffect(() => {
     if (query.data) {
-      setOrders(adaptOrders(query.data.orders));
-      setStats(adaptStats(query.data.stats));
+      setOrders(query.data.orders);
+      setStats(query.data.stats);
     }
   }, [query.data, setOrders, setStats]);
 

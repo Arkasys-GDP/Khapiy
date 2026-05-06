@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { getSocket, disconnectSocket } from "@/src/shared/api/socket/client";
+import {
+  getSocket,
+  getCurrentSocket,
+  disconnectSocket,
+} from "@/src/shared/api/socket/client";
 import { useKaphiyStore } from "../store";
 import type { KaphiySocket } from "@/src/shared/api/socket/client";
 import type { OrderStatus } from "../lib/statusMachine";
@@ -11,8 +15,12 @@ import { useSound } from "@/src/features/notifications/useSound";
 
 const ACK_TIMEOUT_MS = 3_000;
 
-export function useOrdersSocket(socketUrl: string, token: string | null) {
-  const socketRef = useRef<KaphiySocket | null>(null);
+/**
+ * Lifecycle hook — owns the socket connection: connect on mount, listeners,
+ * disconnect on unmount. Render this exactly ONCE in the dashboard layout
+ * so the connection persists across route navigations.
+ */
+export function useOrdersSocketLifecycle(socketUrl: string, token: string | null) {
   const { playNewOrder } = useSound();
 
   const setConnectionStatus = useKaphiyStore((s) => s.setConnectionStatus);
@@ -26,7 +34,6 @@ export function useOrdersSocket(socketUrl: string, token: string | null) {
     if (!token) return;
 
     const sock = getSocket(socketUrl, token);
-    socketRef.current = sock;
 
     setConnectionStatus("connecting");
     sock.connect();
@@ -76,32 +83,58 @@ export function useOrdersSocket(socketUrl: string, token: string | null) {
       setConnectionStatus("disconnected");
     };
   }, [token, socketUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+}
 
+/**
+ * Remote action emitters — read the singleton socket from `getCurrentSocket()`.
+ * Safe to use in any component; if the lifecycle hook hasn't connected yet,
+ * `emitWithAck` will toast "Sin conexión" and resolve false.
+ */
+export function useOrderRemoteActions() {
   const startOrder = useCallback(
     (orderId: string) =>
-      emitWithAck(socketRef.current, "order:start", { orderId }),
+      emitWithAck(getCurrentSocket(), "order:start", { orderId }),
     [],
   );
 
   const markReady = useCallback(
     (orderId: string) =>
-      emitWithAck(socketRef.current, "order:ready", { orderId }),
+      emitWithAck(getCurrentSocket(), "order:ready", { orderId }),
+    [],
+  );
+
+  const markDelivered = useCallback(
+    (orderId: string) =>
+      emitWithAck(getCurrentSocket(), "order:deliver", { orderId }),
     [],
   );
 
   const markOutOfStock = useCallback(
     (orderId: string, itemId: string) =>
-      emitWithAck(socketRef.current, "order:out-of-stock", { orderId, itemId }),
+      emitWithAck(getCurrentSocket(), "order:out-of-stock", { orderId, itemId }),
     [],
   );
 
-  return { startOrder, markReady, markOutOfStock };
+  return { startOrder, markReady, markDelivered, markOutOfStock };
 }
 
-function emitWithAck(
+type AckEvent =
+  | "order:start"
+  | "order:ready"
+  | "order:deliver"
+  | "order:out-of-stock";
+
+interface AckPayloadMap {
+  "order:start": { orderId: string };
+  "order:ready": { orderId: string };
+  "order:deliver": { orderId: string };
+  "order:out-of-stock": { orderId: string; itemId: string };
+}
+
+function emitWithAck<E extends AckEvent>(
   sock: KaphiySocket | null,
-  event: "order:start" | "order:ready" | "order:out-of-stock",
-  payload: Record<string, string>,
+  event: E,
+  payload: AckPayloadMap[E],
 ): Promise<boolean> {
   if (!sock?.connected) {
     toast.error("Sin conexión — reintentando…");
@@ -114,8 +147,12 @@ function emitWithAck(
       resolve(false);
     }, ACK_TIMEOUT_MS);
 
-    // @ts-expect-error — overloaded emit signatures
-    sock.emit(event, payload, (res) => {
+    type EmitWithAck = (
+      event: E,
+      payload: AckPayloadMap[E],
+      ack: (res: { ok: boolean; error?: string }) => void,
+    ) => unknown;
+    (sock.emit as unknown as EmitWithAck)(event, payload, (res) => {
       clearTimeout(timeout);
       if (!res.ok) toast.error(res.error ?? "Error desconocido");
       resolve(res.ok);
