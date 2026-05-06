@@ -50,10 +50,10 @@ export default function SettingsPage() {
     >
       {/* Header */}
       <div className="px-7 pb-2.5 pt-4">
-        <h1 className="font-display text-lg font-bold text-[var(--foreground)]">
+        <h1 className="font-display text-lg font-bold text-foreground">
           Ajustes
         </h1>
-        <p className="mt-0.5 text-[11px] text-[var(--muted-foreground)]">
+        <p className="mt-0.5 text-[11px] text-muted-foreground">
           Configuración del panel de cocina
         </p>
       </div>
@@ -72,10 +72,10 @@ export default function SettingsPage() {
               aria-label={muted ? "Activar sonido" : "Silenciar"}
               className={cn(
                 "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all",
-                "focus-visible:outline-2 focus-visible:outline-[var(--praline)]",
+                "focus-visible:outline-2 focus-visible:outline-praline",
                 muted
-                  ? "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)]"
-                  : "border-[var(--praline)] bg-[color-mix(in_oklch,var(--praline)_12%,transparent)] text-[var(--praline)]",
+                  ? "border-border bg-card text-muted-foreground"
+                  : "border-praline bg-[color-mix(in_oklch,var(--praline)_12%,transparent)] text-praline",
               )}
             >
               {muted
@@ -88,7 +88,7 @@ export default function SettingsPage() {
 
         {/* ── Semaphore thresholds ── */}
         <Section title="Semáforo de tiempo">
-          <p className="mb-4 text-[11px] text-[var(--muted-foreground)]">
+          <p className="mb-4 text-[11px] text-muted-foreground">
             El semáforo cambia de color según el tiempo transcurrido. Configura los umbrales en minutos.
           </p>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -120,8 +120,8 @@ export default function SettingsPage() {
 
         {/* ── Theme ── */}
         <Section title="Apariencia">
-          <p className="mb-3 text-[11px] text-[var(--muted-foreground)]">
-            Atajo de teclado: pulsa <kbd className="rounded bg-[var(--card)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px]">D</kbd> en cualquier momento para alternar claro/oscuro.
+          <p className="mb-3 text-[11px] text-muted-foreground">
+            Atajo de teclado: pulsa <kbd className="rounded bg-card border border-border px-1.5 py-0.5 font-mono text-[10px]">D</kbd> en cualquier momento para alternar claro/oscuro.
           </p>
           <div className="flex flex-wrap gap-2">
             {THEME_OPTIONS.map(({ value, label, Icon }) => {
@@ -135,10 +135,10 @@ export default function SettingsPage() {
                   suppressHydrationWarning
                   className={cn(
                     "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all",
-                    "focus-visible:outline-2 focus-visible:outline-[var(--praline)]",
+                    "focus-visible:outline-2 focus-visible:outline-praline",
                     active
-                      ? "border-[var(--praline)] bg-[color-mix(in_oklch,var(--praline)_12%,transparent)] text-[var(--praline)]"
-                      : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--praline)]/40 hover:text-[var(--foreground)]",
+                      ? "border-praline bg-[color-mix(in_oklch,var(--praline)_12%,transparent)] text-praline"
+                      : "border-border bg-card text-muted-foreground hover:border-(--praline)/40 hover:text-foreground",
                   )}
                 >
                   <Icon className="size-4" aria-hidden />
@@ -159,7 +159,7 @@ export default function SettingsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="ticket-card px-6 py-5">
-      <h2 className="mb-4 text-[11px] font-bold uppercase tracking-widest text-[var(--praline)]">
+      <h2 className="mb-4 text-[11px] font-bold uppercase tracking-widest text-praline">
         {title}
       </h2>
       {children}
@@ -179,9 +179,9 @@ function Row({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-[var(--foreground)]">{label}</p>
+        <p className="text-sm font-semibold text-foreground">{label}</p>
         {description && (
-          <p className="mt-0.5 text-[11px] text-[var(--muted-foreground)]">{description}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{description}</p>
         )}
       </div>
       {children}
@@ -206,7 +206,7 @@ function ThresholdInput({ id, label, colorVar, value, onChange, onBlur, onKeyDow
     <div>
       <label
         htmlFor={id}
-        className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-[var(--muted-foreground)]"
+        className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
       >
         <span
           aria-hidden
@@ -227,11 +227,11 @@ function ThresholdInput({ id, label, colorVar, value, onChange, onBlur, onKeyDow
           onBlur={onBlur}
           onKeyDown={onKeyDown}
           className={cn(
-            "w-20 rounded-xl border border-[var(--border)] bg-[var(--input)] px-3 py-2.5 font-mono text-sm text-[var(--foreground)]",
-            "focus:border-[var(--praline)] focus:outline-none",
+            "w-20 rounded-xl border border-border bg-input px-3 py-2.5 font-mono text-sm text-foreground",
+            "focus:border-praline focus:outline-none",
           )}
         />
-        <span className="text-xs text-[var(--muted-foreground)]">min</span>
+        <span className="text-xs text-muted-foreground">min</span>
       </div>
     </div>
   );
@@ -242,8 +242,8 @@ function ThresholdVisualizer({ warnSecs, alertSecs }: { warnSecs: number; alertS
   const alertMin = Math.round(alertSecs / 60);
 
   return (
-    <div className="mt-4 flex items-center gap-1 text-[10px] text-[var(--muted-foreground)]" aria-hidden>
-      <Clock className="mr-1 size-3.5 flex-shrink-0" />
+    <div className="mt-4 flex items-center gap-1 text-[10px] text-muted-foreground" aria-hidden>
+      <Clock className="mr-1 size-3.5 shrink-0" />
       <span>0 min</span>
       <div className="mx-1 h-2 flex-1 rounded-full bg-[color-mix(in_oklch,var(--sem-ok)_40%,transparent)]" style={{ flex: warnMin }} />
       <span>{warnMin} min</span>
