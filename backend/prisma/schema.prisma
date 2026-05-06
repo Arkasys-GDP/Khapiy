@@ -3,7 +3,7 @@
 
 generator client {
   provider   = "prisma-client-js"
-  output     = "../src/generated/prisma"
+  //output     = "../src/generated/prisma"
   engineType = "library"
 }
 
@@ -61,8 +61,8 @@ model Order {
   total         Decimal?      @db.Decimal(10, 2)
   paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
   kitchenStatus KitchenStatus @default(WAITING) @map("kitchen_status")
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
-  deletedAt     DateTime?     @map("deleted_at") @db.Timestamp(6)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt     DateTime?     @map("deleted_at") @db.Timestamptz(6)
   table         Table         @relation(fields: [tableId], references: [id])
   orderItems    OrderItem[]
 
@@ -110,6 +110,17 @@ enum KitchenStatus {
   PREPARING
   READY
   DELIVERED
+  OUT_OF_STOCK
+}
+
+model Barista {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  pinHash   String   @map("pin_hash") @db.VarChar(255)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("baristas")
 }
 
 model N8nChatHistory {
@@ -118,4 +129,13 @@ model N8nChatHistory {
   message   Json
 
   @@map("n8n_chat_histories")
+}
+
+model N8nVector {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content   String?  @db.Text
+  metadata  Json?    @db.JsonB
+  embedding Unsupported("vector")?
+
+  @@map("n8n_vectors")
 }
