@@ -1,8 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
-import { CheckCheck } from "lucide-react";
-import type { Order } from "../types";
+import {
+  CheckCheck,
+  PackageCheck,
+  BadgeCheck,
+  CircleDashed,
+  CircleSlash,
+} from "lucide-react";
+import type { Order, PaymentStatus } from "../types";
 import { semaphoreOf } from "../lib/semaphore";
 import { useElapsedTime } from "../hooks/useElapsedTime";
 import { useKaphiyStore } from "../store";
@@ -15,10 +21,17 @@ interface Props {
   order: Order;
   onStart: (id: string) => Promise<boolean>;
   onReady: (id: string) => Promise<boolean>;
+  onDeliver: (id: string) => Promise<boolean>;
   onOutOfStock: (orderId: string, itemId: string) => Promise<boolean>;
 }
 
-export function OrderCard({ order, onStart, onReady, onOutOfStock }: Props) {
+export function OrderCard({
+  order,
+  onStart,
+  onReady,
+  onDeliver,
+  onOutOfStock,
+}: Props) {
   const warnSecs = useKaphiyStore((s) => s.semaphoreWarnSecs);
   const alertSecs = useKaphiyStore((s) => s.semaphoreAlertSecs);
 
@@ -33,8 +46,10 @@ export function OrderCard({ order, onStart, onReady, onOutOfStock }: Props) {
       optimisticTransition(order.id, "PENDING", "IN_PREP", () => onStart(order.id));
     } else if (order.status === "IN_PREP") {
       optimisticTransition(order.id, "IN_PREP", "READY", () => onReady(order.id));
+    } else if (order.status === "READY") {
+      optimisticTransition(order.id, "READY", "DELIVERED", () => onDeliver(order.id));
     }
-  }, [order.id, order.status, optimisticTransition, onStart, onReady]);
+  }, [order.id, order.status, optimisticTransition, onStart, onReady, onDeliver]);
 
   const handleOutOfStock = useCallback(
     (itemId: string) => {
@@ -51,11 +66,16 @@ export function OrderCard({ order, onStart, onReady, onOutOfStock }: Props) {
       ? "Iniciar preparación"
       : order.status === "IN_PREP"
         ? "Listo para entregar"
-        : null;
+        : order.status === "READY"
+          ? "Marcar entregado"
+          : null;
+
+  const ActionIcon =
+    order.status === "READY" ? PackageCheck : CheckCheck;
 
   return (
     <article
-      aria-label={`Pedido ${order.orderNumber} — Mesa ${order.tableNumber}`}
+      aria-label={`Pedido ${order.orderID} — Mesa ${order.tableNumber}`}
       className={cn(
         "ticket-card relative mb-6 flex w-full flex-col break-inside-avoid",
         isAlert && "ring-2 ring-[var(--sem-alert)]/40",
@@ -83,24 +103,27 @@ export function OrderCard({ order, onStart, onReady, onOutOfStock }: Props) {
             <span className="order-number">{order.tableNumber}</span>
           </div>
           <p className="text-[11px] font-medium text-[var(--muted-foreground)]">
-            {order.orderNumber} · {order.paxCount} persona{order.paxCount !== 1 ? "s" : ""}
+            {order.orderID} · {order.paxCount} persona{order.paxCount !== 1 ? "s" : ""}
           </p>
-          {/* Status chip */}
-          <span
-            className={cn(
-              "mt-1 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
-              order.status === "PENDING" &&
-                "bg-[color-mix(in_oklch,var(--crema)_25%,transparent)] text-[var(--crema)]",
-              order.status === "IN_PREP" &&
-                "bg-[color-mix(in_oklch,var(--praline)_15%,transparent)] text-[var(--praline)]",
-              order.status === "READY" &&
-                "bg-[color-mix(in_oklch,var(--sem-ok)_18%,transparent)] text-[var(--sem-ok)]",
-            )}
-          >
-            {order.status === "PENDING" && "Pendiente"}
-            {order.status === "IN_PREP" && "En preparación"}
-            {order.status === "READY" && "Listo ✓"}
-          </span>
+          {/* Chips: kitchen status + payment status */}
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span
+              className={cn(
+                "inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                order.status === "PENDING" &&
+                  "bg-[color-mix(in_oklch,var(--crema)_45%,transparent)] text-[var(--ink)]",
+                order.status === "IN_PREP" &&
+                  "bg-[color-mix(in_oklch,var(--praline)_18%,transparent)] text-[var(--praline)]",
+                order.status === "READY" &&
+                  "bg-[color-mix(in_oklch,var(--sem-ok)_20%,transparent)] text-[var(--sem-ok)]",
+              )}
+            >
+              {order.status === "PENDING" && "Pendiente"}
+              {order.status === "IN_PREP" && "En preparación"}
+              {order.status === "READY" && "Listo ✓"}
+            </span>
+            <PaymentBadge status={order.paymentStatus} total={order.total} />
+          </div>
         </div>
 
         <TimerBadge createdAt={order.createdAt} />
@@ -149,14 +172,62 @@ export function OrderCard({ order, onStart, onReady, onOutOfStock }: Props) {
               "focus-visible:outline-2 focus-visible:outline-[var(--praline)]",
               order.status === "IN_PREP" &&
                 "border-[var(--sem-ok)] bg-[color-mix(in_oklch,var(--sem-ok)_10%,transparent)] text-[var(--sem-ok)] hover:bg-[var(--sem-ok)] hover:text-white",
+              order.status === "READY" &&
+                "border-[var(--praline)] bg-[var(--praline)] text-[var(--paper)] hover:brightness-110",
             )}
           >
-            <CheckCheck className="size-4.5" aria-hidden />
+            <ActionIcon className="size-4.5" aria-hidden />
             {actionLabel}
           </button>
         )}
 
       </footer>
     </article>
+  );
+}
+
+// ── Payment badge — read-only context for the kitchen ────────
+// Payment is owned by the customer PWA + cashier flow. Cocina only sees state.
+
+const PRICE_FORMATTER = new Intl.NumberFormat("es-EC", {
+  style: "currency",
+  currency: "USD",
+});
+
+function PaymentBadge({ status, total }: { status: PaymentStatus; total: number }) {
+  const config = {
+    PAID: {
+      Icon: BadgeCheck,
+      label: "Pagado",
+      cls: "bg-[color-mix(in_oklch,var(--sem-ok)_18%,transparent)] text-[var(--sem-ok)]",
+    },
+    PENDING: {
+      Icon: CircleDashed,
+      label: "Por cobrar",
+      cls: "bg-[color-mix(in_oklch,var(--rose)_18%,transparent)] text-[var(--rose)]",
+    },
+    CANCELLED: {
+      Icon: CircleSlash,
+      label: "Cancelado",
+      cls: "bg-[color-mix(in_oklch,var(--muted-foreground)_15%,transparent)] text-[var(--muted-foreground)] line-through",
+    },
+  } as const;
+
+  const c = config[status];
+
+  return (
+    <span
+      title={`${c.label} · ${PRICE_FORMATTER.format(total)}`}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        c.cls,
+      )}
+    >
+      <c.Icon className="size-3" aria-hidden />
+      {c.label}
+      <span className="font-mono font-bold normal-case opacity-80">
+        {PRICE_FORMATTER.format(total)}
+      </span>
+    </span>
   );
 }

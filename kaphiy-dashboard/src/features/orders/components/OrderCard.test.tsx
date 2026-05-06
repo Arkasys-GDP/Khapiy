@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
 
 const MOCK_ORDER: Order = {
   id: "41",
-  orderNumber: "#PED-0041",
+  orderID: "#PED-0041",
   tableId: "3",
   tableNumber: "3",
   paxCount: 1,
@@ -36,6 +36,8 @@ const MOCK_ORDER: Order = {
       status: "pending",
     },
   ],
+  paymentStatus: "PENDING",
+  total: 25.5,
   createdAt: new Date(Date.now() - 5 * 60_000).toISOString(),
   updatedAt: new Date().toISOString(),
   notes: undefined,
@@ -44,11 +46,13 @@ const MOCK_ORDER: Order = {
 function makeProps(overrides?: Partial<Order>) {
   const onStart = vi.fn().mockResolvedValue(true);
   const onReady = vi.fn().mockResolvedValue(true);
+  const onDeliver = vi.fn().mockResolvedValue(true);
   const onOutOfStock = vi.fn().mockResolvedValue(true);
   return {
     order: overrides ? { ...MOCK_ORDER, ...overrides } : MOCK_ORDER,
     onStart,
     onReady,
+    onDeliver,
     onOutOfStock,
   };
 }
@@ -119,10 +123,19 @@ describe("OrderCard", () => {
     expect(props.onReady).toHaveBeenCalledWith("41");
   });
 
-  it("shows no action button for READY order", () => {
+  it("renders 'Marcar entregado' button for READY order", () => {
     const props = makeProps({ status: "READY" });
     renderWithProviders(<OrderCard {...props} />);
-    expect(screen.queryByRole("button", { name: /iniciar|listo/i })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /marcar entregado/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("calls onDeliver when action button clicked on READY order", () => {
+    const props = makeProps({ status: "READY" });
+    renderWithProviders(<OrderCard {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: /marcar entregado/i }));
+    expect(props.onDeliver).toHaveBeenCalledWith("41");
   });
 
   it("renders per-item out-of-stock buttons for PENDING order", () => {

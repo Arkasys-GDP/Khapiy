@@ -25,7 +25,7 @@ describe("useActiveOrders", () => {
     expect(result.current.fetchStatus).toBe("idle");
   });
 
-  it("fetches orders and hydrates Zustand store", async () => {
+  it("fetches orders + hydrates Zustand store with wire format", async () => {
     useAuthStore.setState({ token: "mock-token", isAuthenticated: true });
 
     const { result } = renderHook(() => useActiveOrders(), { wrapper });
@@ -36,22 +36,8 @@ describe("useActiveOrders", () => {
     const stats = useKaphiyStore.getState().stats;
 
     expect(orders.length).toBeGreaterThan(0);
-    // All orders from MOCK_ORDERS seed have kitchen_status IN_PREP or WAITING
-    expect(orders.every((o) => o.status !== undefined)).toBe(true);
-    // Stats populated
+    // wire format: status is one of frontend OrderStatus values directly
+    expect(orders.every((o) => ["PENDING", "IN_PREP", "READY", "DELIVERED", "OUT_OF_STOCK"].includes(o.status))).toBe(true);
     expect(stats?.completedToday).toBeDefined();
-  });
-
-  it("maps WAITING DB status to PENDING frontend status", async () => {
-    useAuthStore.setState({ token: "mock-token", isAuthenticated: true });
-
-    const { result } = renderHook(() => useActiveOrders(), { wrapper });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    const orders = useKaphiyStore.getState().orders;
-    // MOCK_ORDERS has orders with kitchen_status WAITING — should adapt to PENDING
-    const hasNoPending = orders.every((o) => o.status !== "PENDING");
-    // At least one order should NOT be PENDING (we have IN_PREP in seed too)
-    expect(hasNoPending).toBe(false);
   });
 });

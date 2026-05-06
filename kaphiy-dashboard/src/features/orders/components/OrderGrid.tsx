@@ -2,16 +2,11 @@
 
 import { useKaphiyStore } from "../store"
 import { OrderCard } from "./OrderCard"
-import { useOrdersSocket } from "../hooks/useOrdersSocket"
+import { useOrderRemoteActions } from "../hooks/useOrdersSocket"
 import { InboxIcon } from "lucide-react"
 import { useMemo } from "react"
 
-interface Props {
-  socketUrl: string
-  token: string
-}
-
-export function OrderGrid({ socketUrl, token }: Props) {
+export function OrderGrid() {
   const allOrders = useKaphiyStore((s) => s.orders)
   const orders = useMemo(
     () =>
@@ -24,7 +19,8 @@ export function OrderGrid({ socketUrl, token }: Props) {
     [allOrders]
   )
 
-  const { startOrder, markReady, markOutOfStock } = useOrdersSocket(socketUrl, token)
+  const { startOrder, markReady, markDelivered, markOutOfStock } =
+    useOrderRemoteActions()
 
   return (
     <main
@@ -85,6 +81,7 @@ export function OrderGrid({ socketUrl, token }: Props) {
               order={order}
               onStart={startOrder}
               onReady={markReady}
+              onDeliver={markDelivered}
               onOutOfStock={markOutOfStock}
             />
           ))
