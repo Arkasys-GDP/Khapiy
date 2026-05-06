@@ -2,15 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UtensilsCrossed, History, Settings2, LogOut } from "lucide-react";
+import {
+  UtensilsCrossed,
+  History,
+  Settings2,
+  LogOut,
+  BarChart3,
+  Coffee,
+  Wheat,
+} from "lucide-react";
 import { useAuthStore } from "@/src/features/auth/store/authSlice";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/orders", label: "Pedidos", Icon: UtensilsCrossed },
-  { href: "/history", label: "Historial", Icon: History },
-  { href: "/settings", label: "Ajustes", Icon: Settings2 },
+  { href: "/orders", label: "Pedidos", short: "Ped", Icon: UtensilsCrossed },
+  { href: "/metrics", label: "Métricas", short: "Mét", Icon: BarChart3 },
+  { href: "/products", label: "Productos", short: "Pro", Icon: Coffee },
+  { href: "/ingredients", label: "Ingredientes", short: "Ing", Icon: Wheat },
+  { href: "/history", label: "Historial", short: "His", Icon: History },
+  { href: "/settings", label: "Ajustes", short: "Aju", Icon: Settings2 },
 ] as const;
 
 export function Sidebar() {
@@ -30,7 +41,7 @@ export function Sidebar() {
     >
       {/* Nav links */}
       <ul className="flex flex-1 flex-col items-center gap-1" role="list">
-        {NAV_ITEMS.map(({ href, label, Icon }) => {
+        {NAV_ITEMS.map(({ href, label, short, Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <li key={href}>
@@ -49,7 +60,7 @@ export function Sidebar() {
               >
                 <Icon className="size-[18px]" aria-hidden />
                 <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide">
-                  {label.slice(0, 3)}
+                  {short}
                 </span>
               </Link>
             </li>

@@ -28,5 +28,12 @@ export async function fetcher<T>(
     throw new ApiError(res.status, text || res.statusText);
   }
 
-  return res.json() as Promise<T>;
+  // 204 No Content / empty body → return undefined (caller types T accordingly)
+  if (res.status === 204 || res.headers.get("content-length") === "0") {
+    return undefined as T;
+  }
+
+  const text = await res.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text) as T;
 }
