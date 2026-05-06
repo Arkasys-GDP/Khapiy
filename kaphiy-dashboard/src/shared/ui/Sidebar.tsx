@@ -37,7 +37,7 @@ export function Sidebar() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="flex w-14 flex-shrink-0 flex-col items-center border-r border-[var(--border)] bg-[var(--card)] py-4 sm:w-[4.5rem]"
+      className="flex w-14 shrink-0 flex-col items-center border-r border-border bg-card py-4 sm:w-18"
     >
       {/* Nav links */}
       <ul className="flex flex-1 flex-col items-center gap-1" role="list">
@@ -52,13 +52,13 @@ export function Sidebar() {
                 title={label}
                 className={cn(
                   "flex size-10 flex-col items-center justify-center rounded-xl transition-colors",
-                  "focus-visible:outline-2 focus-visible:outline-[var(--praline)]",
+                  "focus-visible:outline-2 focus-visible:outline-praline",
                   active
-                    ? "bg-[color-mix(in_oklch,var(--praline)_15%,transparent)] text-[var(--praline)]"
-                    : "text-[var(--muted-foreground)] hover:bg-[var(--border)] hover:text-[var(--foreground)]",
+                    ? "bg-[color-mix(in_oklch,var(--praline)_15%,transparent)] text-praline"
+                    : "text-muted-foreground hover:bg-border hover:text-foreground",
                 )}
               >
-                <Icon className="size-[18px]" aria-hidden />
+                <Icon className="size-4.5" aria-hidden />
                 <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide">
                   {short}
                 </span>
@@ -75,11 +75,11 @@ export function Sidebar() {
         title="Cerrar sesión"
         className={cn(
           "flex size-10 flex-col items-center justify-center rounded-xl transition-colors",
-          "text-[var(--muted-foreground)] hover:bg-[color-mix(in_oklch,var(--sem-alert)_15%,transparent)] hover:text-[var(--sem-alert)]",
-          "focus-visible:outline-2 focus-visible:outline-[var(--sem-alert)]",
+          "text-muted-foreground hover:bg-[color-mix(in_oklch,var(--sem-alert)_15%,transparent)] hover:text-sem-alert",
+          "focus-visible:outline-2 focus-visible:outline-sem-alert",
         )}
       >
-        <LogOut className="size-[18px]" aria-hidden />
+        <LogOut className="size-4.5" aria-hidden />
         <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide">Salir</span>
       </button>
     </nav>

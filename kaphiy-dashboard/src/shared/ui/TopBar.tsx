@@ -25,7 +25,7 @@ function LiveClock() {
 
   return (
     <time
-      className="tabular font-mono text-2xl font-bold tracking-wide text-[var(--ink)] dark:text-[var(--paper)]"
+      className="tabular font-mono text-2xl font-bold tracking-wide text-ink dark:text-paper"
       aria-label={`Hora actual: ${time}`}
     >
       {time || "–:–:–"}
@@ -41,11 +41,11 @@ export function TopBar() {
   return (
     <header
       role="banner"
-      className="flex h-[68px] flex-shrink-0 items-center gap-4 bg-[var(--praline)] px-7 text-[var(--paper)]"
+      className="flex h-17 shrink-0 items-center gap-4 bg-praline px-7 text-paper"
     >
       {/* Brand */}
       <span className="font-display text-xl font-semibold tracking-widest">
-        PRALIN<em className="text-[var(--crema)] not-italic">É</em>
+        PRALIN<em className="text-crema not-italic">É</em>
       </span>
 
       {/* Divider */}
@@ -61,7 +61,7 @@ export function TopBar() {
           <span
             aria-live="polite"
             aria-atomic
-            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--paper)] px-3 py-1 text-xs font-bold tracking-wide shadow-sm ring-1 ring-black/5"
+            className="inline-flex items-center gap-1.5 rounded-full bg-paper px-3 py-1 text-xs font-bold tracking-wide shadow-sm ring-1 ring-black/5"
             style={{ color: "var(--sem-alert)" }}
           >
             <span

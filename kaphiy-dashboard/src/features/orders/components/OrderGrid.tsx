@@ -29,12 +29,12 @@ export function OrderGrid() {
       className="flex flex-1 flex-col overflow-hidden"
     >
       {/* Grid header */}
-      <div className="flex flex-shrink-0 items-end justify-between px-7 pt-4 pb-2.5">
+      <div className="flex shrink-0 items-end justify-between px-7 pt-4 pb-2.5">
         <div>
-          <h1 className="font-display text-lg font-bold text-[var(--foreground)]">
+          <h1 className="font-display text-lg font-bold text-foreground">
             Pedidos Activos
           </h1>
-          <p className="mt-0.5 text-[11px] text-[var(--muted-foreground)]">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             Actualizado en tiempo real · Toca &ldquo;Listo para entregar&rdquo;
             cuando el pedido esté listo
           </p>
@@ -51,7 +51,7 @@ export function OrderGrid() {
           ].map(({ label, colorVar }) => (
             <div
               key={label}
-              className="flex items-center gap-1.5 text-[11px] text-[var(--muted-foreground)]"
+              className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
             >
               <span
                 aria-hidden
@@ -96,10 +96,10 @@ function EmptyState() {
     <div
       role="status"
       aria-label="Sin pedidos activos"
-      className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-[20px] border-2 border-dashed border-[var(--border)] text-[var(--muted-foreground)]"
+      className="flex min-h-65 flex-col items-center justify-center gap-3 rounded-[20px] border-2 border-dashed border-border text-muted-foreground"
     >
       <InboxIcon
-        className="size-9 stroke-[var(--border)] stroke-[1.4]"
+        className="size-9 stroke-border stroke-[1.4]"
         aria-hidden
       />
       <p className="text-xs">Sin pedidos activos</p>

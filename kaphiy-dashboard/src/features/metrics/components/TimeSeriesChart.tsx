@@ -55,19 +55,19 @@ export function TimeSeriesChart({ data, range, loading }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-bold tracking-widest text-[var(--praline)] uppercase">
+        <CardTitle className="text-sm font-bold tracking-widest text-praline uppercase">
           Tendencia de pedidos e ingresos
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <Skeleton className="h-[280px] w-full" />
+          <Skeleton className="h-70 w-full" />
         ) : chartData.length === 0 ? (
-          <div className="flex h-[280px] items-center justify-center text-sm text-[var(--muted-foreground)]">
+          <div className="flex h-70 items-center justify-center text-sm text-muted-foreground">
             Sin datos en este rango
           </div>
         ) : (
-          <ChartContainer config={config} className="h-[280px] w-full">
+          <ChartContainer config={config} className="h-70 w-full">
             <ResponsiveContainer>
               <AreaChart data={chartData}>
                 <defs>

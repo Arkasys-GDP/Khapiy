@@ -12,6 +12,14 @@ import {
 import { useOrderHistory } from "@/src/features/orders/hooks/useOrderHistory"
 import { cn } from "@/lib/utils"
 import type { Order } from "@/src/features/orders/types"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 const PAGE_LIMIT = 20
 
@@ -71,21 +79,29 @@ export default function HistoryPage() {
         )}
 
         {data && data.orders.length > 0 && (
-          <table className="w-full border-separate border-spacing-y-1.5 text-sm">
-            <thead>
-              <tr className="text-left text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
-                <th className="py-1 pl-4">Pedido</th>
-                <th className="py-1">Mesa</th>
-                <th className="py-1">Productos</th>
-                <th className="py-1">Hora</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="table-fixed border-separate border-spacing-y-1.5 text-sm">
+            <TableHeader>
+              <TableRow className="border-0 text-left text-[10px] font-semibold tracking-widest text-muted-foreground uppercase hover:bg-transparent">
+                <TableHead className="h-auto w-23 border-0 py-1 pl-4 pr-3 text-muted-foreground">
+                  Pedido
+                </TableHead>
+                <TableHead className="h-auto w-40 border-0 py-1 px-3 text-muted-foreground">
+                  Mesa
+                </TableHead>
+                <TableHead className="h-auto border-0 py-1 px-3 text-muted-foreground">
+                  Productos
+                </TableHead>
+                <TableHead className="h-auto w-22 border-0 py-1 pr-4 pl-3 text-right text-muted-foreground">
+                  Hora
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {data.orders.map((order) => (
                 <HistoryRow key={order.id} order={order} />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
 
@@ -145,19 +161,19 @@ function HistoryRow({ order }: { order: Order }) {
     .join(", ")
 
   return (
-    <tr className="group ticket-card mb-0! text-sm">
-      <td className="rounded-l-xl py-3 pl-4 font-mono text-xs font-medium text-foreground">
+    <TableRow className="group border-0 bg-card/90 shadow-[0_10px_24px_rgba(0,0,0,0.14)] transition-transform duration-150 ease-out hover:-translate-y-0.5 hover:bg-card/95">
+      <TableCell className="w-23 rounded-l-xl py-3 pl-4 pr-3 font-mono text-xs font-medium text-foreground">
         {order.orderNumber}
-      </td>
-      <td className="py-3 font-semibold text-foreground">
+      </TableCell>
+      <TableCell className="w-40 py-3 px-3 font-semibold text-foreground">
         Mesa {order.tableNumber}
-      </td>
-      <td className="max-w-70 truncate py-3 text-muted-foreground">
-        {productSummary}
-      </td>
-      <td className="rounded-r-xl py-3 pr-4 text-right font-mono text-xs text-muted-foreground">
+      </TableCell>
+      <TableCell className="py-3 px-3 text-muted-foreground">
+        <span className="block truncate">{productSummary}</span>
+      </TableCell>
+      <TableCell className="w-22 rounded-r-xl py-3 pr-4 pl-3 text-right font-mono text-xs text-muted-foreground">
         {timeStr}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }

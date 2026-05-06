@@ -10,7 +10,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter } as any);
 
 async function main() {
-  const PIN = process.env.SEED_BARISTA_PIN ?? '1234';
+  const PIN = process.env.SEED_BARISTA_PIN ?? '8786';
   const NAME = process.env.SEED_BARISTA_NAME ?? 'Barista de turno';
 
   const existing = await prisma.barista.findFirst({

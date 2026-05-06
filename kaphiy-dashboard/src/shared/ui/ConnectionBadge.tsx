@@ -30,7 +30,7 @@ export function ConnectionBadge() {
     <span
       role="status"
       aria-label={`Estado de conexión: ${LABELS[status]}`}
-      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--paper)] px-3 py-1 text-xs font-bold tracking-wide ring-1 ring-black/5 shadow-sm"
+      className="inline-flex items-center gap-1.5 rounded-full bg-paper px-3 py-1 text-xs font-bold tracking-wide ring-1 ring-black/5 shadow-sm"
       style={{ color: palette.text }}
     >
       <span
