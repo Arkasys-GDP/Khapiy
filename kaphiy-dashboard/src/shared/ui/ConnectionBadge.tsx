@@ -11,32 +11,32 @@ const LABELS: Record<ConnectionStatus, string> = {
   disconnected: "Sin conexión",
 };
 
+/**
+ * Solid cream pill with semantic-colored text + dot. Designed to pop on any
+ * TopBar background (rose, olive, dark, etc.) by always using `--paper` as
+ * the pill bg — high contrast guaranteed regardless of TopBar palette.
+ */
 export function ConnectionBadge() {
   const status = useKaphiyStore((s) => s.connectionStatus);
+
+  const palette = {
+    connected: { text: "var(--sem-ok)", dot: "var(--sem-ok)", pulse: true },
+    connecting: { text: "var(--sem-warn)", dot: "var(--sem-warn)", pulse: true },
+    reconnecting: { text: "var(--sem-alert)", dot: "var(--sem-alert)", pulse: true },
+    disconnected: { text: "var(--sem-alert)", dot: "var(--sem-alert)", pulse: false },
+  }[status];
 
   return (
     <span
       role="status"
       aria-label={`Estado de conexión: ${LABELS[status]}`}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide",
-        status === "connected" &&
-          "bg-[color-mix(in_oklch,var(--sem-ok)_20%,transparent)] text-[var(--sem-ok)]",
-        (status === "disconnected" || status === "reconnecting") &&
-          "bg-[color-mix(in_oklch,var(--sem-alert)_18%,transparent)] text-[var(--sem-alert)]",
-        status === "connecting" &&
-          "bg-[color-mix(in_oklch,var(--sem-warn)_18%,transparent)] text-[var(--sem-warn)]",
-      )}
+      className="inline-flex items-center gap-1.5 rounded-full bg-paper px-3 py-1 text-xs font-bold tracking-wide ring-1 ring-black/5 shadow-sm"
+      style={{ color: palette.text }}
     >
       <span
         aria-hidden
-        className={cn(
-          "size-1.5 rounded-full",
-          status === "connected" && "animate-pulse bg-[var(--sem-ok)]",
-          status === "disconnected" && "bg-[var(--sem-alert)]",
-          status === "reconnecting" && "animate-pulse bg-[var(--sem-alert)]",
-          status === "connecting" && "animate-pulse bg-[var(--sem-warn)]",
-        )}
+        className={cn("size-1.5 rounded-full", palette.pulse && "animate-pulse")}
+        style={{ background: palette.dot }}
       />
       {LABELS[status]}
     </span>

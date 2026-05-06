@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { TopBar } from "@/src/shared/ui/TopBar";
 import { StatsBar } from "@/src/shared/ui/StatsBar";
 import { Sidebar } from "@/src/shared/ui/Sidebar";
+import { DashboardSocketBridge } from "@/src/shared/ui/DashboardSocketBridge";
 import { useAuthStore } from "@/src/features/auth/store/authSlice";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
+      {/* Owns the WS lifecycle for the entire dashboard. Headless. */}
+      <DashboardSocketBridge />
       <TopBar />
       <StatsBar />
       <div className="flex min-h-0 flex-1 overflow-hidden">

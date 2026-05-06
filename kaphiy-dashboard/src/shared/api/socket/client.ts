@@ -27,3 +27,8 @@ export function disconnectSocket() {
   socket?.disconnect();
   socket = null;
 }
+
+/** Read-only access to the current singleton — used by emitters that don't manage lifecycle. */
+export function getCurrentSocket(): KaphiySocket | null {
+  return socket;
+}

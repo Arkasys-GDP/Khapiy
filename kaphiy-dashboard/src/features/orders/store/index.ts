@@ -19,7 +19,6 @@ export const useKaphiyStore = create<KaphiyStore>()(
         muted: state.muted,
         semaphoreWarnSecs: state.semaphoreWarnSecs,
         semaphoreAlertSecs: state.semaphoreAlertSecs,
-        theme: state.theme,
       }),
     },
   ),

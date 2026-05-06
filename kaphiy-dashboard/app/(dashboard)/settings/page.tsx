@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { Bell, BellOff, Sun, Moon, Monitor, Clock } from "lucide-react";
 import { useKaphiyStore } from "@/src/features/orders/store";
 import { cn } from "@/lib/utils";
@@ -17,8 +18,16 @@ export default function SettingsPage() {
   const semaphoreWarnSecs = useKaphiyStore((s) => s.semaphoreWarnSecs);
   const semaphoreAlertSecs = useKaphiyStore((s) => s.semaphoreAlertSecs);
   const setSemaphoreThresholds = useKaphiyStore((s) => s.setSemaphoreThresholds);
-  const theme = useKaphiyStore((s) => s.theme);
-  const setTheme = useKaphiyStore((s) => s.setTheme);
+
+  // Theme owned by next-themes — read after mount to avoid hydration mismatch.
+  // The setMounted-in-effect pattern is the official next-themes workaround
+  // (see https://github.com/pacocoursey/next-themes#avoid-hydration-mismatch).
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   // Local draft — only commit on blur/enter to avoid spammy state writes
   // Initialized once from persisted store; page is freshly mounted each visit
@@ -111,24 +120,32 @@ export default function SettingsPage() {
 
         {/* ── Theme ── */}
         <Section title="Apariencia">
+          <p className="mb-3 text-[11px] text-[var(--muted-foreground)]">
+            Atajo de teclado: pulsa <kbd className="rounded bg-[var(--card)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px]">D</kbd> en cualquier momento para alternar claro/oscuro.
+          </p>
           <div className="flex flex-wrap gap-2">
-            {THEME_OPTIONS.map(({ value, label, Icon }) => (
-              <button
-                key={value}
-                onClick={() => setTheme(value)}
-                aria-pressed={theme === value}
-                className={cn(
-                  "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all",
-                  "focus-visible:outline-2 focus-visible:outline-[var(--praline)]",
-                  theme === value
-                    ? "border-[var(--praline)] bg-[color-mix(in_oklch,var(--praline)_12%,transparent)] text-[var(--praline)]"
-                    : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--praline)]/40 hover:text-[var(--foreground)]",
-                )}
-              >
-                <Icon className="size-4" aria-hidden />
-                {label}
-              </button>
-            ))}
+            {THEME_OPTIONS.map(({ value, label, Icon }) => {
+              const active = mounted && theme === value;
+              return (
+                <button
+                  key={value}
+                  onClick={() => setTheme(value)}
+                  aria-pressed={active}
+                  // suppressHydrationWarning prevents the brief flicker until `mounted` flips true
+                  suppressHydrationWarning
+                  className={cn(
+                    "flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all",
+                    "focus-visible:outline-2 focus-visible:outline-[var(--praline)]",
+                    active
+                      ? "border-[var(--praline)] bg-[color-mix(in_oklch,var(--praline)_12%,transparent)] text-[var(--praline)]"
+                      : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--praline)]/40 hover:text-[var(--foreground)]",
+                  )}
+                >
+                  <Icon className="size-4" aria-hidden />
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </Section>
 

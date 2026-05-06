@@ -1,157 +1,260 @@
 # Kaphiy Core API Reference
 
-The Kaphiy Core API is an RESTful architectural service built on top of NestJS. This documentation outlines the system's endpoints, expected payloads, and default responses. 
+REST + WebSocket service built on NestJS 11 + Prisma 7 (PostgreSQL/Neon).
+This document describes the **actual** routes implemented in `backend/src`.
 
 ## Base URL
-All API endpoints are relative to the environments configured base URL. In local development environments, the standard prefix applies:
-`http://localhost:3000/api`
+- Local dev: `http://localhost:3001`
+- No global prefix (controllers mount at root, not `/api`).
+- Swagger UI: `http://localhost:3001/api`
+- WebSocket: same origin, default Socket.IO path (`/socket.io/`).
 
-## Content Type
-All requests must be encoded as `application/json` unless otherwise specified. A standard client request must include the `Content-Type: application/json` header for POST and PATCH operations.
+## Content-Type
+All requests are `application/json`. POST/PATCH require `Content-Type: application/json`.
 
-## OpenAPI Documentation
-An automated OpenAPI (Swagger) interface is integrated within the server lifecycle. To visualize the schema and execute dry-run requests, navigate to the `/api` route via any web browser when the application is running.
+## Authentication
+JWT via `Authorization: Bearer <token>`. Token is issued by `POST /auth/login` and is required for **dashboard endpoints** (`/orders/active`, `/orders/history`, `PATCH /orders/:id/status`, `PATCH /order-items/:id/out-of-stock`) and for the WebSocket handshake.
+
+Public endpoints (no auth): the rest of the CRUD (`/products`, `/categories`, `/tables`, `/ingredients`, `POST /orders`, etc.) — these are consumed by the AI/n8n agent and the customer PWA.
 
 ---
 
-## 1. Orders Resource
+## 1. Auth
 
-The orders object represents a point-of-sale transaction within the restaurant flow, coordinating items, tables, and fulfillment statuses.
+### `POST /auth/login`
+Body:
+```json
+{ "pin": "1234" }
+```
+Response **200**:
+```json
+{
+  "access_token": "<JWT>",
+  "barista": { "id": 1, "name": "Barista de turno" }
+}
+```
+Errors: `400` (PIN missing/format), `401` (incorrect PIN).
 
-### Endpoints
+JWT payload: `{ sub: number, name: string, role: 'barista', iat, exp }`.
+Default expiry: 12h. Override via `JWT_EXPIRES_IN` env. Secret: `JWT_SECRET` env (fallback `kaphiy-dev-secret` for dev only).
 
-| Method | Endpoint      | Description |
-|--------|--------------|-------------|
-| GET    | `/orders`    | Retrieves a paginated list of all registered orders. |
-| GET    | `/orders/:id`| Retrieves single order details, including related `orderItems` and `table` associations. |
-| POST   | `/orders`    | Commits a new order transaction to the database. |
-| PATCH  | `/orders/:id`| Partially updates the root fields of an order object and overrides related items if specified. |
-| DELETE | `/orders/:id`| Cascades delete operations, removing both `orderItems` and the parent `order` from persistence. |
+---
 
-### POST/PATCH Payload Schema
+## 2. Orders — Dashboard endpoints
+
+All require `Authorization: Bearer <token>`.
+
+### `GET /orders/active`
+Returns active orders (kitchen statuses `WAITING`, `PREPARING`, `READY`, `OUT_OF_STOCK`) plus aggregate stats. Wire format (already adapted; frontend consumes directly):
 
 ```json
 {
-  "tableId": 1, 
-  "paymentStatus": "PENDING", 
-  "kitchenStatus": "WAITING", 
-  "chatSessionId": "2cd8f331-b682-42da-9ffb-94d1ab5de193", 
-  "paymentCode": "732XDA",
-  "items": [
+  "orders": [
     {
-      "productId": 5,
-      "quantity": 2,
-      "aiNotes": "Sin azúcar añadida"
+      "id": "41",
+      "orderNumber": "#PED-0041",
+      "tableId": "3",
+      "tableNumber": "Mesa 3",
+      "paxCount": 1,
+      "status": "PENDING" | "IN_PREP" | "READY" | "DELIVERED" | "OUT_OF_STOCK",
+      "items": [
+        {
+          "id": "101",
+          "name": "Latte de Avellana",
+          "quantity": 2,
+          "modifiers": ["Oat milk", "sin azúcar"],
+          "dietaryFlags": ["Lactosa"],
+          "status": "pending" | "ready"
+        }
+      ],
+      "paymentStatus": "PENDING" | "PAID" | "CANCELLED",
+      "total": 26.0,
+      "createdAt": "2026-04-26T10:00:00.000Z",
+      "updatedAt": "2026-04-26T10:00:00.000Z"
     }
+  ],
+  "stats": {
+    "inPrep": 1,
+    "alerts": 0,
+    "completedToday": 14,
+    "avgTimeMinutes": 0
+  }
+}
+```
+
+> **Status mapping** (backend `KitchenStatus` enum → wire `status`):
+> `WAITING` → `PENDING`, `PREPARING` → `IN_PREP`, `READY` → `READY`, `DELIVERED` → `DELIVERED`, `OUT_OF_STOCK` → `OUT_OF_STOCK`.
+
+> **Payment ownership**: `paymentStatus` and `total` are **read-only** in the kitchen dashboard. Payment is processed by the customer-facing PWA / cashier flow; the kitchen dashboard only displays the badge for context. Mutations to `paymentStatus` happen via the order `PATCH /orders/:id` endpoint, not from this dashboard.
+
+> **Timestamps**: all `createdAt`/`updatedAt` are ISO-8601 UTC (`Z`-suffixed). The DB column type is `TIMESTAMPTZ(6)` — no client-side timezone math required.
+
+### `GET /orders/history?page=1&limit=20`
+Returns DELIVERED orders **today** (since 00:00 local), paginated.
+```json
+{
+  "orders": [...],
+  "total": 14,
+  "page": 1,
+  "limit": 20
+}
+```
+
+### `PATCH /orders/:id/status`
+Body:
+```json
+{ "kitchenStatus": "PREPARING" }
+```
+Accepts any `KitchenStatus` enum value. Emits `orders:status-changed` over WebSocket.
+Response: full updated order in wire format.
+
+### `PATCH /order-items/:id/out-of-stock`
+Marks the item's product as `is_available = false` (cascades to PWA via product re-fetch) and flips parent order to `OUT_OF_STOCK` if still active. Emits `orders:status-changed` + `orders:stats`.
+Response:
+```json
+{
+  "id": 101,
+  "productId": 5,
+  "isAvailable": false,
+  "orderId": 41,
+  "orderStatus": "OUT_OF_STOCK"
+}
+```
+
+### `GET /orders/metrics?range=daily|weekly|monthly`
+Aggregated KPIs + time series + top products. Default range: `daily`.
+
+- **daily** — last 24 hours, hour-bucketed
+- **weekly** — last 7 days, day-bucketed
+- **monthly** — last 30 days, day-bucketed
+
+Response:
+```json
+{
+  "range": "daily",
+  "totals": {
+    "orders": 24,
+    "revenue": 285.50,
+    "avgPrepMinutes": 0,
+    "completed": 22,
+    "cancelled": 0
+  },
+  "timeSeries": [
+    { "bucket": "2026-05-03T08:00:00.000Z", "orders": 2, "revenue": 18.50 }
+  ],
+  "topProducts": [
+    { "productId": 1, "name": "Latte de Avellana", "quantity": 14, "revenue": 84.0 }
+  ],
+  "statusBreakdown": [
+    { "status": "DELIVERED", "count": 22 },
+    { "status": "PREPARING", "count": 1 }
   ]
 }
 ```
-*Note: `tableId`, `chatSessionId`, `paymentCode`, and `aiNotes` are strictly optional. Enums strictly accept valid `PaymentStatus` (PENDING, PAID, CANCELLED) and `KitchenStatus` (WAITING, PREPARING, READY, DELIVERED).*
+
+> `avgPrepMinutes` returns 0 until the schema gets a `completed_at` column (deferred).
 
 ---
 
-## 2. Products Resource
+## 3. Orders — Public CRUD (n8n / PWA agent)
 
-The product catalog object is the fundamental inventory entity.
+### `GET /orders`
+List all orders (no auth). Includes `orderItems`, `product`, `table`.
 
-### Endpoints
+### `GET /orders/:id`
+Single order with relations.
 
-| Method | Endpoint        | Description |
-|--------|-----------------|-------------|
-| GET    | `/products`     | Returns the complete menu, joining categories and relations with `productIngredients`. |
-| GET    | `/products/:id` | Returns the specified product tree. |
-| POST   | `/products`     | Registers a new product linking to a root category. |
-| PATCH  | `/products/:id` | Updates price, availability, or restructures ingredient associations. |
-| DELETE | `/products/:id` | Deletes the product. |
-
-### POST/PATCH Payload Schema
-
+### `POST /orders`
+Create order. Body:
 ```json
 {
-  "name": "Mocha Clásico",
-  "categoryId": 1,
-  "price": 3.50,
-  "aiDescription": "Mezcla robusta con toques de cacao dulce.",
-  "isAvailable": true,
-  "ingredients": [
-     { "ingredientId": 2, "isOptional": false }
+  "tableId": 1,
+  "chatSessionId": "uuid-v4",
+  "paymentCode": "732XDA",
+  "paymentStatus": "PENDING",
+  "kitchenStatus": "WAITING",
+  "items": [
+    { "productId": 5, "quantity": 2, "aiNotes": "sin azúcar" }
   ]
 }
 ```
-*Note: `price` must meet decimal constraint specifications.*
+- `tableId` is required (NOT NULL on schema).
+- `chatSessionId`, `paymentCode`, `aiNotes` are optional.
+- `paymentStatus` ∈ `PENDING | PAID | CANCELLED` (DB stores `UNPAID` for `PENDING`).
+- `kitchenStatus` ∈ `WAITING | PREPARING | READY | DELIVERED | OUT_OF_STOCK`.
+
+If the resulting order is in an active kitchen status, **emits `orders:new` + `orders:stats`** over WebSocket.
+
+### `PATCH /orders/:id`
+Partial update (any root field + items override). Does **not** emit WS events — use `PATCH /orders/:id/status` for status-only changes.
+
+### `DELETE /orders/:id`
+Cascades delete on `orderItems`.
 
 ---
 
-## 3. Categories Resource
+## 4. Products / Categories / Ingredients / Tables
 
-Classification nodes utilized for menu sorting mechanisms.
+Standard REST CRUD. **Reads are public** (consumed by n8n agent + customer PWA for menu).
+**Writes (POST / PATCH / DELETE) require JWT** (admin barista) on `/products`, `/categories`, `/ingredients`. `/tables` writes remain open for now.
 
-### Endpoints
+| Resource | List (public) | One (public) | Create | Update | Delete |
+|---|---|---|---|---|---|
+| Products | `GET /products` | `GET /products/:id` | 🔒 `POST /products` | 🔒 `PATCH /products/:id` | 🔒 `DELETE /products/:id` |
+| Categories | `GET /categories` | `GET /categories/:id` | 🔒 `POST /categories` | 🔒 `PATCH /categories/:id` | 🔒 `DELETE /categories/:id` |
+| Ingredients | `GET /ingredients` | `GET /ingredients/:id` | 🔒 `POST /ingredients` | 🔒 `PATCH /ingredients/:id` | 🔒 `DELETE /ingredients/:id` |
+| Tables | `GET /tables` | `GET /tables/:id` | `POST /tables` | `PATCH /tables/:id` | `DELETE /tables/:id` |
 
-| Method | Endpoint          | Description |
-|--------|-------------------|-------------|
-| GET    | `/categories`     | Lists structural categories. |
-| GET    | `/categories/:id` | Lists single category details. |
-| POST   | `/categories`     | Creates a base category element. |
-| PATCH  | `/categories/:id` | Updates structural details (e.g. `isActive` state). |
-| DELETE | `/categories/:id` | Issues a permanent deletion command. |
+🔒 = requires `Authorization: Bearer <jwt>`. See Swagger UI at `/api` for payload schemas.
 
-### POST/PATCH Payload Schema
+---
 
-```json
-{
-  "name": "Bebidas Calientes",
-  "isActive": true
-}
+## 5. WebSocket Gateway
+
+Namespace: default (`/`). Path: `/socket.io/`.
+**Auth**: pass JWT via Socket.IO handshake `auth: { token }` (preferred) or query string `?token=...`. Server rejects unauthenticated connections.
+
+### Server → Client events
+
+| Event | Payload | When |
+|---|---|---|
+| `orders:snapshot` | `{ orders: Order[], stats: Stats }` | Manual broadcast on bulk reload |
+| `orders:new` | `Order` (wire format) | New order created |
+| `orders:item-added` | `{ orderId: string, items: OrderItem[] }` | Pre-cuenta items appended (future) |
+| `orders:status-changed` | `{ orderId: string, status: WireStatus }` | After `PATCH /orders/:id/status` or socket transition |
+| `orders:stats` | `Stats` | After any status mutation |
+
+### Client → Server events (with ack)
+
+| Event | Payload | Ack |
+|---|---|---|
+| `orders:resync` | `null` | `{ orders, stats }` (full snapshot) |
+| `order:start` | `{ orderId }` | `{ ok: boolean, error? }` — sets `PREPARING` |
+| `order:ready` | `{ orderId }` | `{ ok }` — sets `READY` |
+| `order:out-of-stock` | `{ orderId, itemId }` | `{ ok }` — flips product unavailable + parent → `OUT_OF_STOCK` |
+| `order:print` | `{ orderId }` | `{ ok }` — placeholder (ESC/POS bridge TBD) |
+
+---
+
+## 6. Environment
+
+Backend `.env`:
+```env
+DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+JWT_SECRET=<random-256-bit>
+JWT_EXPIRES_IN=12h
+PORT=3001
+```
+
+Dashboard `.env.local`:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
 ```
 
 ---
 
-## 4. Ingredients Resource
+## 7. Seed
 
-Granular stock items which compose related standard products.
-
-### Endpoints
-
-| Method | Endpoint            | Description |
-|--------|---------------------|-------------|
-| GET    | `/ingredients`      | Retrieves stock item collection. |
-| GET    | `/ingredients/:id`  | Focuses on a single ingredient metadata instance. |
-| POST   | `/ingredients`      | Ingests logic for new ingredient definition. |
-| PATCH  | `/ingredients/:id`  | Standard update vector. |
-| DELETE | `/ingredients/:id`  | Hard delete for target identifier. |
-
-### POST/PATCH Payload Schema
-
-```json
-{
-  "name": "Leche Deslactosada",
-  "isAllergen": false
-}
-```
-
----
-
-## 5. Tables Resource
-
-Spatial distribution nodes mapping physical or designated logical space to active orders.
-
-### Endpoints
-
-| Method | Endpoint        | Description |
-|--------|-----------------|-------------|
-| GET    | `/tables`       | Lists available spaces spanning all physical configurations. |
-| GET    | `/tables/:id`   | Verifies state of local table. |
-| POST   | `/tables`       | Instantiates a new tracking space. |
-| PATCH  | `/tables/:id`   | Mutates values like name and occupancy enumeration. |
-| DELETE | `/tables/:id`   | Deletes table definition tracking. |
-
-### POST/PATCH Payload Schema
-
-```json
-{
-  "tableName": "Mesa Principal 01",
-  "status": "Available" 
-}
-```
-*Note: `status` constraints accept ONLY defined states: `Available`, `Occupied`, or `Reserved`.*
+Run `npx tsx prisma/seed.ts` for demo categories/products/tables.
+Run `npx tsx prisma/seed-barista.ts` for the demo barista (PIN `1234`, override via `SEED_BARISTA_PIN`).

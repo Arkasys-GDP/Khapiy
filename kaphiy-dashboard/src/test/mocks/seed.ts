@@ -1,224 +1,193 @@
 /**
- * Seed data aligned with Prisma schema.
- * Simulates backend responses (DbOrder shape).
+ * Mock data in wire format (matches backend response shape).
+ * Used by MSW handlers and component tests.
  */
 
-import type { DbOrder } from "@/src/shared/api/adapter";
+import type { Order, OrderStats } from "@/src/features/orders/types";
+import type { Category } from "@/src/features/categories/types";
+import type { Ingredient } from "@/src/features/ingredients/types";
+import type { Product } from "@/src/features/products/types";
+import type { Metrics } from "@/src/features/metrics/types";
 
 const now = new Date();
 const ago = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString();
 
-export const MOCK_ORDERS: DbOrder[] = [
+export const MOCK_ORDERS: Order[] = [
   {
-    id: 41,
-    table_id: 3,
-    chat_session_id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    payment_code: "0041",
-    total: "34.50",
-    payment_status: "PENDING",
-    kitchen_status: "IN_PREP",
-    created_at: ago(13),
-    tables: { id: 3, table_name: "3", status: "Occupied" },
-    order_items: [
+    id: "41",
+    orderID: "#PED-0041",
+    tableId: "3",
+    tableNumber: "3",
+    paxCount: 1,
+    status: "IN_PREP",
+    items: [
       {
-        id: 101,
-        order_id: 41,
-        product_id: 5,
+        id: "101",
+        name: "Latte de Avellana",
         quantity: 2,
-        unit_price: "9.50",
-        ai_notes: "Oat milk, sin azúcar",
-        products: {
-          id: 5,
-          name: "Latte de Avellana",
-          price: "9.50",
-          is_available: true,
-          product_ingredients: [
-            {
-              is_optional: false,
-              ingredients: { id: 3, name: "Lactosa", is_allergen: true },
-            },
-          ],
-        },
+        modifiers: ["Oat milk", "sin azúcar"],
+        dietaryFlags: ["Lactosa"],
+        status: "pending",
       },
       {
-        id: 102,
-        order_id: 41,
-        product_id: 12,
+        id: "102",
+        name: "Croissant Praliné",
         quantity: 1,
-        unit_price: "6.50",
-        ai_notes: "Tibio",
-        products: {
-          id: 12,
-          name: "Croissant Praliné",
-          price: "6.50",
-          is_available: true,
-          product_ingredients: [
-            {
-              is_optional: false,
-              ingredients: { id: 1, name: "Gluten", is_allergen: true },
-            },
-          ],
-        },
+        modifiers: ["Tibio"],
+        dietaryFlags: ["Gluten"],
+        status: "pending",
       },
     ],
+    paymentStatus: "PAID",
+    total: 34.5,
+    createdAt: ago(13),
+    updatedAt: ago(13),
   },
   {
-    id: 42,
-    table_id: 7,
-    chat_session_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    payment_code: "0042",
-    total: "52.00",
-    payment_status: "PENDING",
-    kitchen_status: "WAITING",
-    created_at: ago(6),
-    tables: { id: 7, table_name: "7", status: "Occupied" },
-    order_items: [
+    id: "42",
+    orderID: "#PED-0042",
+    tableId: "7",
+    tableNumber: "7",
+    paxCount: 1,
+    status: "PENDING",
+    items: [
       {
-        id: 103,
-        order_id: 42,
-        product_id: 1,
+        id: "103",
+        name: "Espresso Doble",
         quantity: 2,
-        unit_price: "8.00",
-        ai_notes: "Extra caliente",
-        products: {
-          id: 1,
-          name: "Espresso Doble",
-          price: "8.00",
-          is_available: true,
-          product_ingredients: [],
-        },
+        modifiers: ["Extra caliente"],
+        dietaryFlags: [],
+        status: "pending",
       },
       {
-        id: 104,
-        order_id: 42,
-        product_id: 8,
+        id: "104",
+        name: "Matcha Latte",
         quantity: 1,
-        unit_price: "10.00",
-        ai_notes: null,
-        products: {
-          id: 8,
-          name: "Matcha Latte",
-          price: "10.00",
-          is_available: true,
-          product_ingredients: [
-            {
-              is_optional: false,
-              ingredients: { id: 3, name: "Lactosa", is_allergen: true },
-            },
-          ],
-        },
-      },
-      {
-        id: 105,
-        order_id: 42,
-        product_id: 15,
-        quantity: 2,
-        unit_price: "7.00",
-        ai_notes: null,
-        products: {
-          id: 15,
-          name: "Cupcake Praliné",
-          price: "7.00",
-          is_available: true,
-          product_ingredients: [
-            {
-              is_optional: false,
-              ingredients: { id: 1, name: "Gluten", is_allergen: true },
-            },
-          ],
-        },
+        modifiers: [],
+        dietaryFlags: ["Lactosa"],
+        status: "pending",
       },
     ],
+    paymentStatus: "PENDING",
+    total: 26,
+    createdAt: ago(6),
+    updatedAt: ago(6),
   },
   {
-    id: 43,
-    table_id: 2,
-    chat_session_id: null,
-    payment_code: "0043",
-    total: "18.00",
-    payment_status: "PENDING",
-    kitchen_status: "WAITING",
-    created_at: ago(2),
-    tables: { id: 2, table_name: "2", status: "Occupied" },
-    order_items: [
+    id: "43",
+    orderID: "#PED-0043",
+    tableId: "2",
+    tableNumber: "2",
+    paxCount: 1,
+    status: "PENDING",
+    items: [
       {
-        id: 106,
-        order_id: 43,
-        product_id: 2,
+        id: "106",
+        name: "Cappuccino",
         quantity: 1,
-        unit_price: "9.00",
-        ai_notes: "Sin lácteos",
-        products: {
-          id: 2,
-          name: "Cappuccino",
-          price: "9.00",
-          is_available: true,
-          product_ingredients: [
-            {
-              is_optional: false,
-              ingredients: { id: 3, name: "Lactosa", is_allergen: true },
-            },
-          ],
-        },
-      },
-      {
-        id: 107,
-        order_id: 43,
-        product_id: 20,
-        quantity: 1,
-        unit_price: "9.00",
-        ai_notes: null,
-        products: {
-          id: 20,
-          name: "Tostada Praliné",
-          price: "9.00",
-          is_available: true,
-          product_ingredients: [
-            {
-              is_optional: false,
-              ingredients: { id: 1, name: "Gluten", is_allergen: true },
-            },
-          ],
-        },
+        modifiers: ["Sin lácteos"],
+        dietaryFlags: ["Lactosa"],
+        status: "pending",
       },
     ],
+    paymentStatus: "PENDING",
+    total: 9,
+    createdAt: ago(2),
+    updatedAt: ago(2),
   },
 ];
 
-export const MOCK_STATS = {
-  in_prep: 1,
+export const MOCK_STATS: OrderStats = {
+  inPrep: 1,
   alerts: 1,
-  completed_today: 14,
-  avg_time_minutes: 8.2,
+  completedToday: 14,
+  avgTimeMinutes: 8.2,
 };
 
-export const MOCK_HISTORY: DbOrder[] = [
+export const MOCK_HISTORY: Order[] = [
   {
-    id: 38,
-    table_id: 5,
-    chat_session_id: null,
-    payment_code: "0038",
-    total: "28.00",
-    payment_status: "PAID",
-    kitchen_status: "DELIVERED",
-    created_at: ago(45),
-    tables: { id: 5, table_name: "5", status: "Available" },
-    order_items: [
+    id: "38",
+    orderID: "#PED-0038",
+    tableId: "5",
+    tableNumber: "5",
+    paxCount: 1,
+    status: "DELIVERED",
+    items: [
       {
-        id: 95,
-        order_id: 38,
-        product_id: 1,
+        id: "95",
+        name: "Espresso Doble",
         quantity: 2,
-        unit_price: "8.00",
-        ai_notes: null,
-        products: {
-          id: 1,
-          name: "Espresso Doble",
-          price: "8.00",
-          is_available: true,
-          product_ingredients: [],
-        },
+        modifiers: [],
+        dietaryFlags: [],
+        status: "pending",
       },
     ],
+    paymentStatus: "PAID",
+    total: 16,
+    createdAt: ago(45),
+    updatedAt: ago(45),
   },
 ];
+
+// ── Categories / Ingredients / Products / Metrics ────────────
+
+export const MOCK_CATEGORIES: Category[] = [
+  { id: 1, name: "Café", isActive: true },
+  { id: 2, name: "Bebidas Frías", isActive: true },
+  { id: 3, name: "Postres", isActive: true },
+];
+
+export const MOCK_INGREDIENTS: Ingredient[] = [
+  { id: 1, name: "Leche entera", isAllergen: true },
+  { id: 2, name: "Azúcar Blanca", isAllergen: false },
+  { id: 3, name: "Lactosa", isAllergen: true },
+  { id: 4, name: "Gluten", isAllergen: true },
+];
+
+export const MOCK_PRODUCTS: Product[] = [
+  {
+    id: 1,
+    name: "Café Latte Clásico",
+    categoryId: 1,
+    price: "2.50",
+    aiDescription: "Latte suave con notas de caramelo.",
+    isAvailable: true,
+    productIngredients: [
+      { ingredientId: 1, isOptional: true, ingredient: { id: 1, name: "Leche entera", isAllergen: true } },
+    ],
+  },
+  {
+    id: 2,
+    name: "Frappuccino",
+    categoryId: 2,
+    price: "4.00",
+    isAvailable: true,
+    productIngredients: [],
+  },
+];
+
+export const MOCK_METRICS: Metrics = {
+  range: "daily",
+  totals: {
+    orders: 24,
+    revenue: 285.5,
+    avgPrepMinutes: 0,
+    completed: 22,
+    cancelled: 0,
+  },
+  timeSeries: [
+    { bucket: ago(60 * 23), orders: 2, revenue: 18.5 },
+    { bucket: ago(60 * 12), orders: 8, revenue: 95.0 },
+    { bucket: ago(60 * 4), orders: 14, revenue: 172.0 },
+  ],
+  topProducts: [
+    { productId: 1, name: "Latte de Avellana", quantity: 14, revenue: 84.0 },
+    { productId: 2, name: "Espresso Doble", quantity: 9, revenue: 54.0 },
+    { productId: 3, name: "Cappuccino", quantity: 5, revenue: 30.0 },
+  ],
+  statusBreakdown: [
+    { status: "DELIVERED", count: 22 },
+    { status: "PREPARING", count: 1 },
+    { status: "WAITING", count: 1 },
+  ],
+};

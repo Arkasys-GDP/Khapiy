@@ -39,6 +39,12 @@ export interface ClientToServerEvents {
     ack: (res: AckResponse) => void,
   ) => void;
 
+  /** Transition READY → DELIVERED (kitchen done; order leaves active list) */
+  "order:deliver": (
+    payload: { orderId: string },
+    ack: (res: AckResponse) => void,
+  ) => void;
+
   /** Mark item as out of stock → triggers client reversal */
   "order:out-of-stock": (
     payload: { orderId: string; itemId: string },

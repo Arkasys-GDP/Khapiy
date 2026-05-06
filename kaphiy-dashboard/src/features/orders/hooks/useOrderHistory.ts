@@ -2,18 +2,18 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetcher } from "@/src/shared/api/fetcher";
-import { adaptOrders, type DbOrder } from "@/src/shared/api/adapter";
 import { useAuthStore } from "@/src/features/auth/store/authSlice";
+import type { Order } from "../types";
 
 interface HistoryResponse {
-  orders: DbOrder[];
+  orders: Order[];
   total: number;
   page: number;
   limit: number;
 }
 
 export interface OrderHistoryPage {
-  orders: ReturnType<typeof adaptOrders>;
+  orders: Order[];
   total: number;
   page: number;
   limit: number;
@@ -32,11 +32,11 @@ export function useOrderHistory(page = 1, limit = 20) {
         { token: token! },
       );
       return {
-        orders: adaptOrders(raw.orders),
+        orders: raw.orders,
         total: raw.total,
         page: raw.page,
         limit: raw.limit,
-        totalPages: Math.ceil(raw.total / raw.limit),
+        totalPages: Math.max(1, Math.ceil(raw.total / raw.limit)),
       };
     },
     staleTime: 30_000,
